@@ -61,13 +61,30 @@ int main(void)
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
 
+    const char* fragmentGreenShaderSource = "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "FragColor = vec4(0.0f, 0.1f, 0.0f, 1.0f);\n"
+        "}\n";
+    unsigned int fragmentGreenShader;
+    fragmentGreenShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentGreenShader, 1, &fragmentGreenShaderSource, NULL);
+    glCompileShader(fragmentGreenShader);
+
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
+    unsigned int greenShaderProgram;
+    greenShaderProgram = glCreateProgram();
+    glAttachShader(greenShaderProgram, vertexShader);
+    glAttachShader(greenShaderProgram, fragmentGreenShader);
+    glLinkProgram(greenShaderProgram);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentGreenShader);
 
     float firstVertices[] = {
     0.5f, 0.5f, 0.0f,   // срио╫г
@@ -102,7 +119,7 @@ int main(void)
     {
         processInput(window);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
       
@@ -120,6 +137,7 @@ int main(void)
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUseProgram(greenShaderProgram);
         glBindVertexArray(VAO[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
      
