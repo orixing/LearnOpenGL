@@ -50,13 +50,15 @@ int main(void)
             0.5f, 0.5f, 0.0f,   // 右上角
             0.5f, -0.5f, 0.0f,  // 右下角
             -0.5f, -0.5f, 0.0f, // 左下角
+            0.5f, 0.5f, 0.0f,   // 右上角
+            -0.5f, -0.5f, 0.0f, // 左下角
             -0.5f, 0.5f, 0.0f   // 左上角
         };
 
-        unsigned int indices[] = {
-            0, 1, 3, // 第一个三角形
-            1, 2, 3  // 第二个三角形
-        };
+        //unsigned int indices[] = {
+        //    0, 1, 3, // 第一个三角形
+        //    1, 2, 3  // 第二个三角形
+        //};
 
         unsigned int VAO;
         glGenVertexArrays(1, &VAO);
@@ -67,10 +69,10 @@ int main(void)
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-        unsigned int EBO;
-        glGenBuffers(1, &EBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        //unsigned int EBO;
+        //glGenBuffers(1, &EBO);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
         const char* vertexShaderSource = "#version 330 core\n"
             "layout (location = 0) in vec3 aPos;\n"
@@ -108,9 +110,9 @@ int main(void)
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
