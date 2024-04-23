@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "Shader.h"
+#include "stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -44,15 +45,15 @@ int main(void)
     Shader secendShader("shaders/firstVertexShader.vs", "shaders/secendFregmentShader.fs");
 
     float firstVertices[] = {
-    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // срио╫г
-    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // сроб╫г
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f// вСоб╫г
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  // срио╫г
+    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // сроб╫г
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f, 0.0f,// вСоб╫г
     };
 
     float secondVertices[] = {
-        0.2f, 0.5f, 0.0f,   // срио╫г
-        -0.7f, -0.3f, 0.0f, // вСоб╫г
-        -0.8f, 0.6f, 0.0f   // вСио╫г
+        0.2f, 0.5f, 0.0f, 1.0f, 1.0f,  // срио╫г
+        -0.7f, -0.3f, 0.0f,  0.0f, 0.0f,// вСоб╫г
+        -0.8f, 0.6f, 0.0f , 0.0f, 1.0f   // вСио╫г
     };
 
     unsigned int VAO[2];
@@ -63,16 +64,35 @@ int main(void)
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(firstVertices), firstVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(VAO[1]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(secondVertices), secondVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -99,11 +119,13 @@ int main(void)
         firstShader.use();
         firstShader.setFloat("horizentalAbs", sin(glfwGetTime()));
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+
         secendShader.use();
         secendShader.setFloat("horizentalAbs", 0.3f);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
      
