@@ -9,10 +9,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window,float &mixParam)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        mixParam = std::min(1.0f, mixParam + 0.01f);
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        mixParam = std::max(0.0f, mixParam - 0.01f);
+    }
 }
 
 int main(void)
@@ -45,15 +51,15 @@ int main(void)
     Shader secendShader("shaders/firstVertexShader.vs", "shaders/secendFregmentShader.fs");
 
     float firstVertices[] = {
-    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  0.2f, 0.2f,  // срио╫г
-    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  0.2f, 0.0f, // сроб╫г
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.2f,  0.0f, 0.0f,// вСоб╫г
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  1.0f, 1.0f,  // срио╫г
+    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // сроб╫г
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f, 0.0f,// вСоб╫г
     };
 
     float secondVertices[] = {
-        0.2f, 0.5f, 0.0f, 0.02f, 0.02f,  // срио╫г
+        0.2f, 0.5f, 0.0f, 1.0f, 1.0f,  // срио╫г
         -0.7f, -0.3f, 0.0f,  0.0f, 0.0f,// вСоб╫г
-        -0.8f, 0.6f, 0.0f , 0.0f, 0.02f   // вСио╫г
+        -0.8f, 0.6f, 0.0f , 0.0f, 1.0f   // вСио╫г
     };
 
     unsigned int VAO[2];
@@ -93,7 +99,7 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture[1]);
@@ -111,7 +117,7 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
 
@@ -124,9 +130,11 @@ int main(void)
     secendShader.setInt("texture1", 0);
     secendShader.setInt("texture2", 1);
 
+    float mixParam = 0.0f;
+
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        processInput(window, mixParam);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -148,6 +156,7 @@ int main(void)
         //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
         firstShader.use();
         firstShader.setFloat("horizentalAbs", sin(glfwGetTime()));
+        firstShader.setFloat("mixParam", mixParam);
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
