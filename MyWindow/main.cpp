@@ -1,6 +1,7 @@
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "Shader.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -39,61 +40,13 @@ int main(void)
     glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    const char* vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "//out vec4 vertexColor;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos, 1.0);\n"
-        "   //vertexColor = vec4(0.5,0.0,0.0,1.0);\n"
-        "}\0";
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    const char* fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "//in vec4 vertexColor;\n"
-        "uniform vec4 ourColor;"
-        "void main()\n"
-        "{\n"
-        "FragColor = ourColor;\n"
-        "}\n";
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    const char* fragmentGreenShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "FragColor = vec4(0.0f, 0.5f, 0.0f, 1.0f);\n"
-        "}\n";
-    unsigned int fragmentGreenShader;
-    fragmentGreenShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentGreenShader, 1, &fragmentGreenShaderSource, NULL);
-    glCompileShader(fragmentGreenShader);
-
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    unsigned int greenShaderProgram;
-    greenShaderProgram = glCreateProgram();
-    glAttachShader(greenShaderProgram, vertexShader);
-    glAttachShader(greenShaderProgram, fragmentGreenShader);
-    glLinkProgram(greenShaderProgram);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(fragmentGreenShader);
+    Shader firstShader("shaders/firstVertexShader.vs", "shaders/firstFregmentShader.fs");
+    Shader secendShader("shaders/firstVertexShader.vs", "shaders/secendFregmentShader.fs");
 
     float firstVertices[] = {
-    0.5f, 0.5f, 0.0f,   // срио╫г
-    0.5f, -0.5f, 0.0f,  // сроб╫г
-    -0.5f, -0.5f, 0.0f, // вСоб╫г
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // срио╫г
+    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // сроб╫г
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f// вСоб╫г
     };
 
     float secondVertices[] = {
@@ -110,8 +63,10 @@ int main(void)
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(firstVertices), firstVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(VAO[1]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
@@ -138,15 +93,15 @@ int main(void)
         //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        float timeValue = glfwGetTime();
-        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        glUseProgram(shaderProgram);
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+        //float timeValue = glfwGetTime();
+        //float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+        //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        firstShader.use();
+        //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
         glBindVertexArray(VAO[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        glUseProgram(greenShaderProgram);
+        secendShader.use();
         glBindVertexArray(VAO[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
      
