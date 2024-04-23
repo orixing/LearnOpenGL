@@ -97,11 +97,13 @@ int main(void)
         //float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
         firstShader.use();
+        firstShader.setFloat("horizentalAbs", sin(glfwGetTime()));
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
         glBindVertexArray(VAO[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         secendShader.use();
+        secendShader.setFloat("horizentalAbs", 0.3f);
         glBindVertexArray(VAO[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
      
