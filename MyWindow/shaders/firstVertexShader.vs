@@ -10,10 +10,10 @@ uniform mat4 transform;
 void main()
 {
  
-   vec4 newPos = transform *  vec4(aPos , 1.0);
-   newPos.x = max(-1.0, newPos.x + horizentalAbs);
-   newPos.x = min(1.0,newPos.x);
-   gl_Position = vec4(newPos.x, -newPos.y, newPos.z, 1.0);
+   //vec4 newPos = transform *  vec4(aPos , 1.0);
+   //newPos.x = max(-1.0, newPos.x + horizentalAbs);
+   //newPos.x = min(1.0,newPos.x);
+   gl_Position =transform * vec4(aPos, 1.0);
    ourColor = aColor;
    texCoord = aTexCoord;
 }

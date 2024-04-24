@@ -50,6 +50,8 @@ int main(void)
     glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    stbi_set_flip_vertically_on_load(true);
+
     Shader firstShader("shaders/firstVertexShader.vs", "shaders/firstFregmentShader.fs");
     Shader secendShader("shaders/firstVertexShader.vs", "shaders/secendFregmentShader.fs");
 
@@ -60,9 +62,9 @@ int main(void)
     };
 
     float secondVertices[] = {
-        0.2f, 0.5f, 0.0f, 1.0f, 1.0f,  // 右上角
-        -0.7f, -0.3f, 0.0f,  0.0f, 0.0f,// 左下角
-        -0.8f, 0.6f, 0.0f , 0.0f, 1.0f   // 左上角
+        0.5f, 0.5f, 0.0f, 1.0f, 1.0f,  // 右上角
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,// 左下角
+        -0.5f, 0.5f, 0.0f , 0.0f, 1.0f   // 左上角
     };
 
     unsigned int VAO[2];
@@ -142,8 +144,9 @@ int main(void)
 
 
         glm::mat4 trans;
-        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));    
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+        float scaleRate = abs(sin(glfwGetTime()));
+        trans = glm::scale(trans, glm::vec3(scaleRate, scaleRate, scaleRate));
 
         //unsigned int indices[] = {
         //    0, 1, 3, // 第一个三角形
