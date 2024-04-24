@@ -178,6 +178,19 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
 
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window, mixParam);
@@ -213,15 +226,12 @@ int main(void)
         //glBindVertexArray(VAO[0]);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glm::mat4 model;
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
         glm::mat4 view;
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::translate(view, glm::vec3(1.0f, 0.0f, -3.0f));
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f);
 
         secendShader.use();
-        secendShader.setMat4("model", model);
         secendShader.setMat4("view", view);
         secendShader.setMat4("projection", projection);
         glActiveTexture(GL_TEXTURE0);
@@ -229,7 +239,21 @@ int main(void)
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture[1]);
         glBindVertexArray(VAO[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 model;
+            model = glm::translate(model, cubePositions[i]);
+            if (i % 3 == 0) {
+                model = glm::rotate(model, glm::radians(20 * float(glfwGetTime())), glm::vec3(1.0f, 0.3f, 0.5f));
+            }
+            else {
+                model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+            }
+            secendShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
      
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
