@@ -32,7 +32,10 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    float screenWidth = 800.0f;
+    float screenHeight = 600.0f;
+
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -135,18 +138,19 @@ int main(void)
 
     float mixParam = 0.0f;
 
+    glm::mat4 model;
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 view;
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f);
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window, mixParam);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-
-        glm::mat4 trans;
-        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
-        float scaleRate = abs(sin(glfwGetTime()));
-        trans = glm::scale(trans, glm::vec3(scaleRate, scaleRate, scaleRate));
 
         //unsigned int indices[] = {
         //    0, 1, 3, // 第一个三角形
@@ -164,7 +168,9 @@ int main(void)
         firstShader.use();
         firstShader.setFloat("horizentalAbs", 0);
         firstShader.setFloat("mixParam", mixParam);
-        firstShader.setMat4("transform", trans);
+        firstShader.setMat4("model", model);
+        firstShader.setMat4("view", view);
+        firstShader.setMat4("projection", projection);
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -174,7 +180,9 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         secendShader.use();
-        secendShader.setMat4("transform", trans);
+        secendShader.setMat4("model", model);
+        secendShader.setMat4("view", view);
+        secendShader.setMat4("projection", projection);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
         glActiveTexture(GL_TEXTURE1);
