@@ -191,6 +191,7 @@ int main(void)
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window, mixParam);
@@ -226,8 +227,21 @@ int main(void)
         //glBindVertexArray(VAO[0]);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glm::mat4 view;
-        view = glm::translate(view, glm::vec3(1.0f, 0.0f, -3.0f));
+        float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        //glm::mat4 view;
+        glm::vec3 cameraPos = glm::vec3(camX, 0.0, camZ);
+        glm::vec3 cameraDirc = glm::normalize(glm::vec3(0.0, 0.0, 0.0) - cameraPos);
+        glm::vec3 cameraUp = glm::vec3(0.0, 1.0, 0.0);
+        glm::vec3 cameraRight = glm::normalize(glm::cross(cameraDirc, cameraUp));
+        glm::mat4 view(cameraRight.x, cameraUp.x, -cameraDirc.x, 0.0,
+            cameraRight.y, cameraUp.y, -cameraDirc.y, 0.0,
+            cameraRight.z, cameraUp.z, -cameraDirc.z, 0.0,
+            0.0, 0.0, 0.0, 1.0);
+
+        view = glm::translate(view, -cameraPos);
+        //view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f);
 
@@ -243,12 +257,7 @@ int main(void)
         {
             glm::mat4 model;
             model = glm::translate(model, cubePositions[i]);
-            if (i % 3 == 0) {
-                model = glm::rotate(model, glm::radians(20 * float(glfwGetTime())), glm::vec3(1.0f, 0.3f, 0.5f));
-            }
-            else {
-                model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
-            }
+            model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
             secendShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
