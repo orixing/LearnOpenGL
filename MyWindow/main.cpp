@@ -3,6 +3,9 @@
 #include <iostream>
 #include "Shader.h"
 #include "stb_image.h"
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -119,8 +122,6 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
-
     firstShader.use();
     firstShader.setInt("texture1", 0);
     firstShader.setInt("texture2", 1);
@@ -139,7 +140,10 @@ int main(void)
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-      
+
+        glm::mat4 trans;
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
         //unsigned int indices[] = {
         //    0, 1, 3, // 第一个三角形
@@ -155,8 +159,9 @@ int main(void)
         //float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
         firstShader.use();
-        firstShader.setFloat("horizentalAbs", sin(glfwGetTime()));
+        firstShader.setFloat("horizentalAbs", 0);
         firstShader.setFloat("mixParam", mixParam);
+        firstShader.setMat4("transform", trans);
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -166,6 +171,7 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         secendShader.use();
+        secendShader.setMat4("transform", trans);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
         glActiveTexture(GL_TEXTURE1);
