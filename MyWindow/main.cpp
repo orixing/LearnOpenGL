@@ -144,7 +144,7 @@ int main(void)
     glGenTextures(1, &specularMap);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specularMap);
-    data = stbi_load("image/container2_specular.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("image/lighting_maps_specular_color.png", &width, &height, &nrChannels, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
