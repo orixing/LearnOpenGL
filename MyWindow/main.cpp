@@ -144,14 +144,24 @@ int main(void)
     glGenTextures(1, &specularMap);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specularMap);
-    data = stbi_load("image/lighting_maps_specular_color.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("image/container2_specular.png", &width, &height, &nrChannels, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+    unsigned int EmissionMap;
+    glGenTextures(1, &EmissionMap);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, EmissionMap);
+    data = stbi_load("image/matrix.jpg", &width, &height, &nrChannels, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
     objShader.use();
     objShader.setInt("material.diffuse", 0);
     objShader.setInt("material.specular", 1);
+    objShader.setInt("material.emission", 2);
     objShader.setFloat("material.shininess", 32.0f);
 
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
