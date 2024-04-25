@@ -6,21 +6,18 @@
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtc/type_ptr.hpp>
 #include <glm/glm/gtc/matrix_transform.hpp>
+#include "Camera.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-float deltaTime = 0.0f; // 当前帧与上一帧的时间差
-float lastFrame = 0.0f; // 上一帧的时间
-void processInput(GLFWwindow* window, float& mixParam, glm::vec3& cameraPos, glm::vec3& cameraFront, glm::vec3& cameraUp);
+void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-float yaw = -90.0f, pitch = 0.0f;
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera;
 
 int main(void)
 {
@@ -52,6 +49,7 @@ int main(void)
     glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -102,26 +100,10 @@ int main(void)
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    //float secondVertices[] = {
-    //    0.5f, 0.5f, 0.0f, 1.0f, 1.0f,  // 右上角
-    //    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,// 左下角
-    //    -0.5f, 0.5f, 0.0f , 0.0f, 1.0f   // 左上角
-    //};
-
     unsigned int VAO[2];
     glGenVertexArrays(2, VAO);
     unsigned int VBO[2];
     glGenBuffers(2, VBO);
-
-    //glBindVertexArray(VAO[0]);
-    //glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(firstVertices), firstVertices, GL_STATIC_DRAW);
-    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    //glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    //glEnableVertexAttribArray(1);
-    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    //glEnableVertexAttribArray(2);
 
     glBindVertexArray(VAO[1]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
@@ -174,8 +156,6 @@ int main(void)
     secendShader.setInt("texture1", 0);
     secendShader.setInt("texture2", 1);
 
-    float mixParam = 0.0f;
-
     glEnable(GL_DEPTH_TEST);
 
     glm::vec3 cubePositions[] = {
@@ -193,47 +173,18 @@ int main(void)
 
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window, mixParam, cameraPos, cameraFront, cameraUp);
+        processInput(window);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //unsigned int indices[] = {
-        //    0, 1, 3, // 第一个三角形
-        //    1, 2, 3  // 第二个三角形
-        //};
 
-        //unsigned int EBO;
-        //glGenBuffers(1, &EBO);
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-        //float timeValue = glfwGetTime();
-        //float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        // 
-        //firstShader.use();
-        //firstShader.setFloat("horizentalAbs", 0);
-        //firstShader.setFloat("mixParam", mixParam);
-        //firstShader.setMat4("model", model);
-        //firstShader.setMat4("view", view);
-        //firstShader.setMat4("projection", projection);
-        ////glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, texture[0]);
-        //glActiveTexture(GL_TEXTURE1);
-        //glBindTexture(GL_TEXTURE_2D, texture[1]);
-        //glBindVertexArray(VAO[0]);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        glm::mat4 view;
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
 
 
         secendShader.use();
-        secendShader.setMat4("view", view);
+        secendShader.setMat4("view", camera.GetViewMatrix());
         secendShader.setMat4("projection", projection);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -261,7 +212,9 @@ int main(void)
     return 0;
 }
 
-void processInput(GLFWwindow* window, float& mixParam, glm::vec3& cameraPos, glm::vec3& cameraFront, glm::vec3& cameraUp)
+float deltaTime = 0.0f; // 当前帧与上一帧的时间差
+float lastFrame = 0.0f; // 上一帧的时间
+void processInput(GLFWwindow* window)
 {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -269,21 +222,14 @@ void processInput(GLFWwindow* window, float& mixParam, glm::vec3& cameraPos, glm
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        mixParam = std::min(1.0f, mixParam + 0.01f);
-    }
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        mixParam = std::max(0.0f, mixParam - 0.01f);
-    }
-    float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(DirecEnum::Front, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(DirecEnum::Back, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(DirecEnum::Left, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(DirecEnum::Right,deltaTime);
 }
 
 float lastX = 400, lastY = 300;
@@ -295,27 +241,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         lastY = ypos;
         firstMouse = false;
     }
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
+    camera.ProcessMouseMovement(xpos - lastX, lastY - ypos);
     lastX = xpos;
     lastY = ypos;
+}
 
-    float sensitivity = 0.05f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-    front.y = sin(glm::radians(pitch));
-    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-    cameraFront = glm::normalize(front);
-    std::cout << cameraFront.x << cameraFront.y << cameraFront.z << std::endl;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(yoffset);
 }
