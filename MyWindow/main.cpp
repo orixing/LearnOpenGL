@@ -137,7 +137,8 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::vec3 lightPos = glm::vec3(float(sin(glfwGetTime())) * 2.0f, float(cos(glfwGetTime())) * 2.0f, float(sin(glfwGetTime())) * 2.0f);
+        //glm::vec3 lightPos = glm::vec3(float(sin(glfwGetTime())) * 2.0f, float(cos(glfwGetTime())) * 2.0f, float(sin(glfwGetTime())) * 2.0f);
+        glm::vec3 lightPos = glm::vec3(1.4f, 1.8f,2.4f);
 
         objShader.use();
         objShader.setVec3("lightPos", glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0)));
