@@ -140,8 +140,7 @@ int main(void)
         glm::vec3 lightPos = glm::vec3(float(sin(glfwGetTime())) * 2.0f, float(cos(glfwGetTime())) * 2.0f, float(sin(glfwGetTime())) * 2.0f);
 
         objShader.use();
-        objShader.setVec3("lightPos", lightPos);
-        objShader.setVec3("viewPos", camera.Position);
+        objShader.setVec3("lightPos", glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0)));
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
         glm::mat4 model;
