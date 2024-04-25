@@ -12,10 +12,12 @@ void Camera::ProcessKeyboard(DirecEnum direction, float deltaTime) {
 	switch (direction)
 	{
 	case DirecEnum::Front:
-		Position += glm::vec3(Direc.x, 0, Direc.z) * deltaValue;
+		//Position += glm::vec3(Direc.x, 0, Direc.z) * deltaValue;
+		Position += Direc * deltaValue;
 		break;
 	case DirecEnum::Back:
-		Position -= glm::vec3(Direc.x, 0, Direc.z) * deltaValue;
+		//Position -= glm::vec3(Direc.x, 0, Direc.z) * deltaValue;
+		Position -= Direc * deltaValue;
 		break;
 	case DirecEnum::Left:
 		Position -= Right * deltaValue;
