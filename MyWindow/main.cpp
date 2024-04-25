@@ -127,10 +127,15 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     objShader.use();
-    objShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-    objShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-    objShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    objShader.setVec3("material.ambient", 0.0f, 0.1f, 0.06f);
+    objShader.setVec3("material.diffuse", 0.0f, 0.50980392f, 0.50980392f);
+    objShader.setVec3("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);
     objShader.setFloat("material.shininess", 32.0f);
+
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    objShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f);
+    objShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
+    objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -143,15 +148,6 @@ int main(void)
 
         objShader.use();
         objShader.setVec3("light.position", glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0)));
-        glm::vec3 lightColor;
-        lightColor.x = sin(glfwGetTime() * 2.0f);
-        lightColor.y = sin(glfwGetTime() * 0.7f);
-        lightColor.z = sin(glfwGetTime() * 1.3f);
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-        objShader.setVec3("light.ambient", ambientColor);
-        objShader.setVec3("light.diffuse", diffuseColor); // 将光照调暗了一些以搭配场景
-        objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
