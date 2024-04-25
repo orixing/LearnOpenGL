@@ -63,8 +63,6 @@ void Camera::updateAttribute() {
 
 	Right = glm::normalize(glm::cross(Direc, glm::vec3(0.0f,1.0f,0.0f))); 
 	Up = glm::normalize(glm::cross(Right, Direc));
-	std::cout << Right.x << Right.y << Right.z << std::endl;
-	std::cout << Up.x << Up.y << Up.z << std::endl;
 }
 
 glm::mat4  Camera::GetViewMatrix() {

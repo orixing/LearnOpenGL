@@ -126,11 +126,9 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
 
-    glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
     objShader.use();
     objShader.setVec3("objColor", 1.0f, 0.5f, 0.31f);
     objShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-    objShader.setVec3("lightPos", lightPos);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -139,7 +137,10 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::vec3 lightPos = glm::vec3(float(sin(glfwGetTime())) * 2.0f, float(cos(glfwGetTime())) * 2.0f, float(sin(glfwGetTime())) * 2.0f);
+
         objShader.use();
+        objShader.setVec3("lightPos", lightPos);
         objShader.setVec3("viewPos", camera.Position);
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
