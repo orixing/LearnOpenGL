@@ -53,8 +53,8 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
-    Shader firstShader("shaders/firstVertexShader.vs", "shaders/firstFregmentShader.fs");
-    Shader secendShader("shaders/firstVertexShader.vs", "shaders/secendFregmentShader.fs");
+    Shader objShader("shaders/vertexShader.vs", "shaders/objFregmentShader.fs");
+    Shader lightShader("shaders/vertexShader.vs", "shaders/lightFregmentShader.fs");
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -100,107 +100,65 @@ int main(void)
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    unsigned int VAO[2];
-    glGenVertexArrays(2, VAO);
-    unsigned int VBO[2];
-    glGenBuffers(2, VBO);
+    unsigned int objVAO;
+    glGenVertexArrays(1, &objVAO);
+    unsigned int objVBO;
+    glGenBuffers(1, &objVBO);
 
-    glBindVertexArray(VAO[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+    glBindVertexArray(objVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, objVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(2);
 
-    int width, height, nrChannels;
-    unsigned char* data;
-    unsigned int texture[2];
-    glGenTextures(2, texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture[0]);
-    data = stbi_load("image/container.jpg", &width, &height, &nrChannels, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(data);
+    unsigned int lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    unsigned int lightVBO;
+    glGenBuffers(1, &lightVBO);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture[1]);
-    data = stbi_load("image/awesomeface.png", &width, &height, &nrChannels, 0);
-    if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    firstShader.use();
-    firstShader.setInt("texture1", 0);
-    firstShader.setInt("texture2", 1);
-
-    secendShader.use();
-    secendShader.setFloat("horizentalAbs", 0.3f);
-    secendShader.setInt("texture1", 0);
-    secendShader.setInt("texture2", 1);
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(2)
 
     glEnable(GL_DEPTH_TEST);
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f,  0.0f,  0.0f),
-        glm::vec3(2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3(2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),
-        glm::vec3(1.5f,  2.0f, -2.5f),
-        glm::vec3(1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
+    objShader.use();
+    objShader.setVec3("objColor", 1.0f, 0.5f, 0.31f);
+    objShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+        objShader.use();
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
+        glm::mat4 model;
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        objShader.setMat4("model", model);
+        objShader.setMat4("view", camera.GetViewMatrix());
+        objShader.setMat4("projection", projection);
+        glBindVertexArray(objVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-
-        secendShader.use();
-        secendShader.setMat4("view", camera.GetViewMatrix());
-        secendShader.setMat4("projection", projection);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture[0]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture[1]);
-        glBindVertexArray(VAO[1]);
-        for (unsigned int i = 0; i < 10; i++)
-        {
-            glm::mat4 model;
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
-            secendShader.setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-
+        lightShader.use();
+        projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
+        model = glm::translate(model, glm::vec3(1.2f, 1.0f, 2.0f));
+        model = glm::scale(model, glm::vec3(0.2f));
+        lightShader.setMat4("model", model);
+        lightShader.setMat4("view", camera.GetViewMatrix());
+        lightShader.setMat4("projection", projection);
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
      
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

@@ -144,9 +144,9 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\firstFregmentShader.fs" />
-    <None Include="shaders\firstVertexShader.vs" />
-    <None Include="shaders\secendFregmentShader.fs" />
+    <None Include="shaders\lightFregmentShader.fs" />
+    <None Include="shaders\vertexShader.vs" />
+    <None Include="shaders\objFregmentShader.fs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
