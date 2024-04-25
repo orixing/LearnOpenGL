@@ -127,8 +127,13 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     objShader.use();
-    objShader.setVec3("objColor", 1.0f, 0.5f, 0.31f);
-    objShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    objShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    objShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // 将光照调暗了一些以搭配场景
+    objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    objShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+    objShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    objShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    objShader.setFloat("material.shininess", 32.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -137,11 +142,10 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //glm::vec3 lightPos = glm::vec3(float(sin(glfwGetTime())) * 2.0f, float(cos(glfwGetTime())) * 2.0f, float(sin(glfwGetTime())) * 2.0f);
-        glm::vec3 lightPos = glm::vec3(1.4f, 1.8f,2.4f);
+        glm::vec3 lightPos = glm::vec3(float(sin(glfwGetTime())) * 2.0f, float(cos(glfwGetTime())) * 2.0f, float(sin(glfwGetTime())) * 2.0f);
 
         objShader.use();
-        objShader.setVec3("lightPos", glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0)));
+        objShader.setVec3("light.position", glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0)));
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
         glm::mat4 model;
