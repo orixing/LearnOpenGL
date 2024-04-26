@@ -159,7 +159,9 @@ int main(void)
     objShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f);
     objShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
     objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    objShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+    objShader.setFloat("light.constant", 1.0f);
+    objShader.setFloat("light.linear", 0.09f);
+    objShader.setFloat("light.quadratic", 0.032f);
 
     glm::vec3 cubePositions[] = {
     glm::vec3(0.0f,  0.0f,  0.0f),
@@ -205,7 +207,8 @@ int main(void)
 
         lightShader.use();
         projection = glm::perspective(glm::radians(camera.fov), screenWidth / screenHeight, 0.1f, 100.0f);
-        glm::mat4 model = glm::translate(model, lightPos);
+        glm::mat4 model;
+        model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         lightShader.setMat4("model", model);
         lightShader.setMat4("view", camera.GetViewMatrix());
