@@ -156,12 +156,13 @@ int main(void)
     objShader.setFloat("material.shininess", 32.0f);
 
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    objShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f);
+    objShader.setVec3("light.ambient", 0.0f, 0.0f, 0.0f);
     objShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
     objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
     objShader.setVec3("light.position", camera.Position);
     objShader.setVec3("light.direction", camera.Direc);
     objShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+    objShader.setFloat("light.outCutOff", glm::cos(glm::radians(17.5f)));
 
     glm::vec3 cubePositions[] = {
     glm::vec3(0.0f,  0.0f,  0.0f),
