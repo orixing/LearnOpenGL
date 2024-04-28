@@ -33,6 +33,12 @@
     <ClCompile Include="Camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -44,10 +50,16 @@
     <ClInclude Include="Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\firstVertexShader.vs" />
-    <None Include="shaders\firstFregmentShader.fs" />
-    <None Include="shaders\secendFregmentShader.fs" />
+    <None Include="shaders\lightFregmentShader.fs" />
+    <None Include="shaders\vertexShader.vs" />
+    <None Include="shaders\objFregmentShader.fs" />
   </ItemGroup>
 </Project>
