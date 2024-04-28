@@ -9,12 +9,13 @@
 #include <vector>
 #include "Shader.h"
 #include "Mesh.h"
+#include "stb_image.h"
 
 class Model
 {
 public:
     /*  函数   */
-    Model(char* path)
+    Model(const char* path)
     {
         loadModel(path);
     }
@@ -23,6 +24,7 @@ private:
     /*  模型数据  */
     vector<Mesh> meshes;
     string directory;
+    vector<Texture> textures_loaded;
     /*  函数   */
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);

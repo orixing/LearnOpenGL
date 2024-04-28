@@ -7,6 +7,9 @@
 #include "Shader.h"
 using std::string;
 using std::vector;
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 
 struct Vertex {
@@ -18,8 +21,8 @@ struct Vertex {
 struct Texture {
     unsigned int id;
     string type;
+    aiString path;  // 我们储存纹理的路径用于与其它纹理进行比较
 };
-
 
 class Mesh {
 public:

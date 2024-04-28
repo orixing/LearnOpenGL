@@ -21,10 +21,10 @@ public:
 	float Yaw = -90.0f;
 	float Pitch = 0.0f;
 	float speed = 2.5f;
-	float sensitive = 0.1f;
+	float sensitive = 0.4f;
 	float fov = 45.0f;
 
-	Camera(glm::vec3 position = glm::vec3(0.0f,2.0f,6.0f), glm::vec3 direc = glm::vec3(0.0f, -0.5f, -1.0f));
+	Camera(glm::vec3 position = glm::vec3(0.0f,5.0f,20.0f), glm::vec3 direc = glm::vec3(0.0f, -0.5f, -1.0f));
 	void ProcessKeyboard(DirecEnum direction, float deltaTime);
 	void ProcessMouseMovement(float xoffset, float yoffset);
 	void ProcessMouseScroll(float yoffset);
