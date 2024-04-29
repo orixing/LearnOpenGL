@@ -1,9 +1,8 @@
 #include "Camera.h"
 #include <iostream>
 
-Camera::Camera(glm::vec3 position, glm::vec3 direc) {
+Camera::Camera(glm::vec3 position) {
 	Position = position;
-	Direc = direc;
 	updateAttribute();
 }
 

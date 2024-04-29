@@ -148,6 +148,8 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\borderFragmentShader.fs" />
+    <None Include="shaders\borderVertexShader.vs" />
     <None Include="shaders\lightFregmentShader.fs" />
     <None Include="shaders\vertexShader.vs" />
     <None Include="shaders\objFregmentShader.fs" />
