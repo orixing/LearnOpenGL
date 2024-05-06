@@ -61,5 +61,11 @@
     <None Include="shaders\lightFregmentShader.fs" />
     <None Include="shaders\vertexShader.vs" />
     <None Include="shaders\objFregmentShader.fs" />
+    <None Include="shaders\borderFragmentShader.fs" />
+    <None Include="shaders\borderVertexShader.vs" />
+    <None Include="shaders\grassFragmentShader.fs" />
+    <None Include="shaders\grassVertexShader.vs" />
+    <None Include="shaders\screenVertexShader.vs" />
+    <None Include="shaders\screenFragmentShader.fs" />
   </ItemGroup>
 </Project>

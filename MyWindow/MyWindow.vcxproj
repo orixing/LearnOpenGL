@@ -153,6 +153,8 @@
     <None Include="shaders\grassFragmentShader.fs" />
     <None Include="shaders\grassVertexShader.vs" />
     <None Include="shaders\lightFregmentShader.fs" />
+    <None Include="shaders\screenFragmentShader.fs" />
+    <None Include="shaders\screenVertexShader.vs" />
     <None Include="shaders\vertexShader.vs" />
     <None Include="shaders\objFregmentShader.fs" />
   </ItemGroup>

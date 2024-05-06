@@ -58,24 +58,13 @@ int main(void)
     Shader objShader("../../MyWindow/shaders/vertexShader.vs", "../../MyWindow/shaders/objFregmentShader.fs");
     Shader borderShader("../../MyWindow/shaders/borderVertexShader.vs", "../../MyWindow/shaders/borderFragmentShader.fs");
     Shader grassShader("../../MyWindow/shaders/grassVertexShader.vs", "../../MyWindow/shaders/grassFragmentShader.fs");
+    Shader screenShader("../../MyWindow/shaders/screenVertexShader.vs", "../../MyWindow/shaders/screenFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,
          0.5f, -0.5f, -0.5f,
          0.5f,  0.5f, -0.5f, 
-
-         //0.0f,  0.0f, 0.5f,
-         //-0.1f,  0.0f, 0.0f,
-         //0.0f,  0.1f, 0.0f,
-
-         //-100.0f,-20.0f,-100.0f,
-         //-100.0f,-20.0f,100.0f,
-         //100.0f,-20.0f,100.0f,
-
-         //100.0f,-20.0f,-100.0f,
-         //100.0f,-20.0f,100.0f,
-         //-100.0f,-20.0f,-100.0f,
     };
     unsigned int lightVAO;
     glGenVertexArrays(1, &lightVAO);
@@ -86,6 +75,28 @@ int main(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    float screenVertices[] = {
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f
+    };
+
+    unsigned int screenVAO;
+    glGenVertexArrays(1, &screenVAO);
+    unsigned int screenVBO;
+    glGenBuffers(1, &screenVBO);
+    glBindVertexArray(screenVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screenVertices), screenVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     float grassVertices[] = {
         -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -141,15 +152,37 @@ int main(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    unsigned int fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    unsigned int fboColorTexture;
+    glGenTextures(1, &fboColorTexture);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboColorTexture, 0);
+    unsigned int fboDepthStencilTexture;
+    glGenRenderbuffers(1, &fboDepthStencilTexture);
+    glBindRenderbuffer(GL_RENDERBUFFER, fboDepthStencilTexture);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fboDepthStencilTexture);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
 
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
         glStencilMask(0xFF); // 启用模板缓冲写入
@@ -173,18 +206,6 @@ int main(void)
         objShader.setMat4("model", model);
         myModel.Draw(objShader);
 
-
-
-        //lightShader.use();
-        //lightShader.setMat4("view", camera.GetViewMatrix());
-        //lightShader.setMat4("projection", projection);
-        //model = glm::mat4();
-        //model = glm::translate(model, pointLightPos2);
-        //model = glm::scale(model, glm::vec3(0.2f));
-        //lightShader.setMat4("model", model);
-        //glBindVertexArray(lightVAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
-        //glStencilFunc(GL_NEVER, 1, 0xFF); 
         glStencilMask(0x00);
         std::map<float, glm::vec3> sorted;
         for (unsigned int i = 0; i < 3; i++)
@@ -238,6 +259,18 @@ int main(void)
 
         glStencilMask(0xFF);
         glEnable(GL_DEPTH_TEST);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        screenShader.use();
+        glBindVertexArray(screenVAO);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+        screenShader.setInt("screenTexture", 2);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
