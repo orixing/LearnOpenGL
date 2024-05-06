@@ -155,6 +155,8 @@
     <None Include="shaders\lightFregmentShader.fs" />
     <None Include="shaders\screenFragmentShader.fs" />
     <None Include="shaders\screenVertexShader.vs" />
+    <None Include="shaders\skyboxFragmentShader.fs" />
+    <None Include="shaders\skyboxVertexShader.vs" />
     <None Include="shaders\vertexShader.vs" />
     <None Include="shaders\objFregmentShader.fs" />
   </ItemGroup>
