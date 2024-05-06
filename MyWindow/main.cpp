@@ -101,11 +101,8 @@ int main(void)
         glm::vec3(0.5f,0,2),glm::vec3(-1,0,2),glm::vec3(0,0,3)
         //glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),
     };
-    float grassRotate[] = {
-        10.0f,20.0f,0.0f,-10.0f,-15.0f,10.0f
-    };
     float grassScale[] = {
-        0.8f,1.1f,0.9f,1.0f,1.0f,0.8f
+        0.8f,1.1f,0.9f
     };
 
     int width, height, nrChannels;
@@ -193,8 +190,18 @@ int main(void)
             grassShader.setMat4("projection", projection);
             model = glm::mat4();
             model = glm::translate(model, grassTranslate[i]);
-            model = glm::rotate(model, glm::radians(grassRotate[i]), glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::scale(model, glm::vec3(grassScale[i]));
+            glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(camera.Direc.x, 0.0f, camera.Direc.z));
+
+            glm::vec3 n = glm::vec3(0, 0, -1);
+            const glm::vec3 half = glm::normalize(cameraDirec_xz + n);
+            const double w = glm::dot(n, half);
+            const glm::vec3 xyz = glm::cross(n, half);
+            const glm::quat p = glm::quat(w, xyz);
+
+            glm::mat4 rotate = glm::mat4_cast(p);
+            model = model * rotate;
+
             grassShader.setMat4("model", model);
             glBindVertexArray(grassVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
