@@ -6,7 +6,5 @@ uniform sampler2D grassTex;
 void main()
 {
     vec4 color = texture(grassTex, TexCoords);
-    if(color.a < 0.1)
-        discard;
     FragColor = color;
 }

@@ -8,7 +8,7 @@
 #include <glm/glm/gtc/matrix_transform.hpp>
 #include "Camera.h"
 #include "Model.h"
-
+#include <map> 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
 
@@ -101,10 +101,6 @@ int main(void)
         glm::vec3(0.5f,0,2),glm::vec3(-1,0,2),glm::vec3(0,0,3)
         //glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),
     };
-    float grassScale[] = {
-        0.8f,1.1f,0.9f
-    };
-
     int width, height, nrChannels;
     unsigned char* data;
     unsigned int textureMap;
@@ -141,6 +137,9 @@ int main(void)
     objShader.setInt("spotTex", 0);
     grassShader.use();
     grassShader.setInt("grassTex", 1);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -184,13 +183,18 @@ int main(void)
         //glDrawArrays(GL_TRIANGLES, 0, 36);
         //glStencilFunc(GL_NEVER, 1, 0xFF); 
         glStencilMask(0x00);
-        for (int i = 0; i < 3; i++) {
+        std::map<float, glm::vec3> sorted;
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            float distance = glm::length(camera.Position - grassTranslate[i]);
+            sorted[distance] = grassTranslate[i];
+        }
+        for(std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it){
             grassShader.use();
             grassShader.setMat4("view", camera.GetViewMatrix());
             grassShader.setMat4("projection", projection);
             model = glm::mat4();
-            model = glm::translate(model, grassTranslate[i]);
-            model = glm::scale(model, glm::vec3(grassScale[i]));
+            model = glm::translate(model, it->second);
             glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(camera.Direc.x, 0.0f, camera.Direc.z));
 
             glm::vec3 n = glm::vec3(0, 0, -1);
