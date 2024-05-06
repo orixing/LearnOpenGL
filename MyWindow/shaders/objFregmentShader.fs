@@ -16,7 +16,7 @@ void main()
         vec3 ka = vec3(0.05,0.05,0.05);
         vec3 ambient = ka * ambLightIntensity;
 
-        vec3 lightIntensity = vec3(7.0,7.0,7.0);
+        vec3 lightIntensity = vec3(8.0,8.0,8.0);
         vec3 kd = vec3(texture(spotTex, TexCoords));
         float distance = length(LightPos[i]-fragPos);
 

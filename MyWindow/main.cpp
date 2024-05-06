@@ -60,6 +60,7 @@ int main(void)
     Shader grassShader("../../MyWindow/shaders/grassVertexShader.vs", "../../MyWindow/shaders/grassFragmentShader.fs");
     Shader screenShader("../../MyWindow/shaders/screenVertexShader.vs", "../../MyWindow/shaders/screenFragmentShader.fs");
     Shader skyboxShader("../../MyWindow/shaders/skyboxVertexShader.vs", "../../MyWindow/shaders/skyboxFragmentShader.fs");
+    Shader mirrorCowShader("../../MyWindow/shaders/mirrorCowVertexShader.vs", "../../MyWindow/shaders/mirrorCowFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -110,7 +111,7 @@ int main(void)
     };
 
     glm::vec3 grassTranslate[] = {
-        glm::vec3(0.5f,0,2),glm::vec3(-1,0,2),glm::vec3(0,0,3)
+        glm::vec3(0.5f,-0.5,2),glm::vec3(-1,-0.5,2),glm::vec3(0,-0.5,3)
         //glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),
     };
     int width, height, nrChannels;
@@ -179,12 +180,12 @@ int main(void)
 
     vector<std::string> faces
     {
-        "../../MyWindow/skybox/right.jpg",
-        "../../MyWindow/skybox/left.jpg",
-        "../../MyWindow/skybox/bottom.jpg",
-        "../../MyWindow/skybox/top.jpg",
-        "../../MyWindow/skybox/front.jpg",
-        "../../MyWindow/skybox/back.jpg",
+        "../../MyWindow/skybox/px.png",
+        "../../MyWindow/skybox/nx.png",
+        "../../MyWindow/skybox/ny.png",
+        "../../MyWindow/skybox/py.png",
+        "../../MyWindow/skybox/pz.png",
+        "../../MyWindow/skybox/nz.png",
     };
     glActiveTexture(GL_TEXTURE3);
     unsigned int skyboxTexture = loadCubemap(faces);
@@ -271,11 +272,16 @@ int main(void)
         objShader.setVec3("lightPos[1]", pointLightPos2);
         myModel.Draw(objShader);
 
+        mirrorCowShader.use();
         model = glm::mat4();
         model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
         model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-        objShader.setMat4("model", model);
-        myModel.Draw(objShader);
+        mirrorCowShader.setMat4("view", camera.GetViewMatrix());
+        mirrorCowShader.setVec3("cameraPos", camera.Position);
+        mirrorCowShader.setMat4("projection", projection);
+        mirrorCowShader.setMat4("model", model);
+        mirrorCowShader.setInt("skybox", 3);
+        myModel.Draw(mirrorCowShader);
 
         glStencilMask(0x00);
 
