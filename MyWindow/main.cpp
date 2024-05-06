@@ -98,6 +98,29 @@ int main(void)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+
+    float screenVertices2[] = {
+    -0.2f,  1.0f,  0.0f, 1.0f,
+    -0.2f, 0.8f,  0.0f, 0.0f,
+     0.2f, 0.8f,  1.0f, 0.0f,
+
+    -0.2f,  1.0f,  0.0f, 1.0f,
+     0.2f, 0.8f,  1.0f, 0.0f,
+     0.2f,  1.0f,  1.0f, 1.0f
+    };
+
+    unsigned int screenVAO2;
+    glGenVertexArrays(1, &screenVAO2);
+    unsigned int screenVBO2;
+    glGenBuffers(1, &screenVBO2);
+    glBindVertexArray(screenVAO2);
+    glBindBuffer(GL_ARRAY_BUFFER, screenVBO2);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screenVertices2), screenVertices2, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
     float grassVertices[] = {
         -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -271,6 +294,106 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, fboColorTexture);
         screenShader.setInt("screenTexture", 2);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+        //第二次渲染
+        {
+            camera.Direc = -camera.Direc;
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
+            glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
+            glStencilMask(0xFF); // 启用模板缓冲写入
+            glm::vec3 pointLightPos1(-1, 3, 3);
+            glm::vec3 pointLightPos2(3, 3, 1);
+            objShader.use();
+            objShader.setMat4("view", camera.GetViewMatrix());
+            glm::mat4 projection;
+            projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
+            objShader.setMat4("projection", projection);
+            glm::mat4 model;
+            model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+            objShader.setMat4("model", model);
+            objShader.setVec3("lightPos[0]", pointLightPos1);
+            objShader.setVec3("lightPos[1]", pointLightPos2);
+            myModel.Draw(objShader);
+
+            model = glm::mat4();
+            model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
+            model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+            objShader.setMat4("model", model);
+            myModel.Draw(objShader);
+
+            glStencilMask(0x00);
+            std::map<float, glm::vec3> sorted;
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                float distance = glm::length(camera.Position - grassTranslate[i]);
+                sorted[distance] = grassTranslate[i];
+            }
+            for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+                grassShader.use();
+                grassShader.setMat4("view", camera.GetViewMatrix());
+                grassShader.setMat4("projection", projection);
+                model = glm::mat4();
+                model = glm::translate(model, it->second);
+                glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(camera.Direc.x, 0.0f, camera.Direc.z));
+
+                glm::vec3 n = glm::vec3(0, 0, -1);
+                const glm::vec3 half = glm::normalize(cameraDirec_xz + n);
+                const double w = glm::dot(n, half);
+                const glm::vec3 xyz = glm::cross(n, half);
+                const glm::quat p = glm::quat(w, xyz);
+
+                glm::mat4 rotate = glm::mat4_cast(p);
+                model = model * rotate;
+
+                grassShader.setMat4("model", model);
+                glBindVertexArray(grassVAO);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+            }
+
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0x00); // 禁止模板缓冲的写入
+            glDisable(GL_DEPTH_TEST);
+            borderShader.use();
+
+            borderShader.setMat4("view", camera.GetViewMatrix());
+            projection = glm::mat4();
+            projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
+            borderShader.setMat4("projection", projection);
+            model = glm::mat4();
+            model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+            borderShader.setMat4("model", model);
+            borderShader.setVec3("lightPos[0]", pointLightPos1);
+            borderShader.setVec3("lightPos[1]", pointLightPos2);
+            myModel.Draw(borderShader);
+
+            model = glm::mat4();
+            model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
+            model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+            borderShader.setMat4("model", model);
+            myModel.Draw(borderShader);
+
+            glStencilMask(0xFF);
+            glEnable(GL_DEPTH_TEST);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            glClear( GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+            screenShader.use();
+            glBindVertexArray(screenVAO2);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+            screenShader.setInt("screenTexture", 2);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            camera.Direc = -camera.Direc;
+        }
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
