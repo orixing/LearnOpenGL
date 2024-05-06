@@ -54,10 +54,11 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
-    Shader lightShader("shaders/vertexShader.vs", "shaders/lightFregmentShader.fs");
-    Shader objShader("shaders/vertexShader.vs", "shaders/objFregmentShader.fs");
-    Shader borderShader("shaders/borderVertexShader.vs", "shaders/borderFragmentShader.fs");
-    Model myModel("spot/spot_triangulated_good.obj");
+    Shader lightShader("../../MyWindow/shaders/vertexShader.vs", "../../MyWindow/shaders/lightFregmentShader.fs");
+    Shader objShader("../../MyWindow/shaders/vertexShader.vs", "../../MyWindow/shaders/objFregmentShader.fs");
+    Shader borderShader("../../MyWindow/shaders/borderVertexShader.vs", "../../MyWindow/shaders/borderFragmentShader.fs");
+    Shader grassShader("../../MyWindow/shaders/grassVertexShader.vs", "../../MyWindow/shaders/grassFragmentShader.fs");
+    Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,
@@ -86,19 +87,63 @@ int main(void)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    float grassVertices[] = {
+        -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
+
+        -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 1.0f, 0.0f, 1.0f, 1.0f,
+    };
+
+    glm::vec3 grassTranslate[] = {
+        glm::vec3(0.5f,0,2),glm::vec3(-1,0,2),glm::vec3(0,0,3)
+        //glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),glm::vec3(0,0,4),
+    };
+    float grassRotate[] = {
+        10.0f,20.0f,0.0f,-10.0f,-15.0f,10.0f
+    };
+    float grassScale[] = {
+        0.8f,1.1f,0.9f,1.0f,1.0f,0.8f
+    };
+
     int width, height, nrChannels;
     unsigned char* data;
     unsigned int textureMap;
     glGenTextures(1, &textureMap);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureMap);
-    data = stbi_load("spot/spot_texture.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("../../MyWindow/spot/spot_texture.png", &width, &height, &nrChannels, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+    unsigned int grassVAO;
+    glGenVertexArrays(1, &grassVAO);
+    unsigned int grassVBO;
+    glGenBuffers(1, &grassVBO);
+    glBindVertexArray(grassVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    unsigned int grassTexture;
+    glGenTextures(1, &grassTexture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, grassTexture);
+    data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
     objShader.use();
     objShader.setInt("spotTex", 0);
+    grassShader.use();
+    grassShader.setInt("grassTex", 1);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -107,8 +152,6 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        //glm::vec3 pointLightPos(sin(glfwGetTime())*5,5+ sin(glfwGetTime()) * 5, sin(glfwGetTime()) *5);
-        //glm::vec3 pointLightPos(sin(glfwGetTime()) * 3, cos(glfwGetTime()) * 3, sin(glfwGetTime()) * -3);
         glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
         glStencilMask(0xFF); // 启用模板缓冲写入
         glm::vec3 pointLightPos1(-1, 3, 3);
@@ -131,6 +174,31 @@ int main(void)
         objShader.setMat4("model", model);
         myModel.Draw(objShader);
 
+
+
+        //lightShader.use();
+        //lightShader.setMat4("view", camera.GetViewMatrix());
+        //lightShader.setMat4("projection", projection);
+        //model = glm::mat4();
+        //model = glm::translate(model, pointLightPos2);
+        //model = glm::scale(model, glm::vec3(0.2f));
+        //lightShader.setMat4("model", model);
+        //glBindVertexArray(lightVAO);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        //glStencilFunc(GL_NEVER, 1, 0xFF); 
+        glStencilMask(0x00);
+        for (int i = 0; i < 3; i++) {
+            grassShader.use();
+            grassShader.setMat4("view", camera.GetViewMatrix());
+            grassShader.setMat4("projection", projection);
+            model = glm::mat4();
+            model = glm::translate(model, grassTranslate[i]);
+            model = glm::rotate(model, glm::radians(grassRotate[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(grassScale[i]));
+            grassShader.setMat4("model", model);
+            glBindVertexArray(grassVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00); // 禁止模板缓冲的写入
@@ -156,16 +224,6 @@ int main(void)
 
         glStencilMask(0xFF);
         glEnable(GL_DEPTH_TEST);
-
-        //lightShader.use();
-        //lightShader.setMat4("view", camera.GetViewMatrix());
-        //lightShader.setMat4("projection", projection);
-        //model = glm::mat4();
-        //model = glm::translate(model, pointLightPos2);
-        //model = glm::scale(model, glm::vec3(0.2f));
-        //lightShader.setMat4("model", model);
-        //glBindVertexArray(lightVAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
