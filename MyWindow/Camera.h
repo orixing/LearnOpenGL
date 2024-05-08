@@ -18,7 +18,7 @@ public:
 	glm::vec3 Up;
 	glm::vec3 Right;
 
-	float Yaw = -90.0f;
+	float Yaw = 0.0f;
 	float Pitch = 0.0f;
 	float speed = 2.5f;
 	float sensitive = 0.4f;

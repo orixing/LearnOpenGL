@@ -15,7 +15,7 @@ void main()
 {
    gl_Position = projection * view * model * vec4(aPos, 1.0);
    TexCoords = vec2(aTexCoords.x, 1-aTexCoords.y);
-   Normal = vec3(-aNormal.x,aNormal.y,-aNormal.z);
+   Normal =  mat3(transpose(inverse(view * model))) * vec3(-aNormal.x,aNormal.y,-aNormal.z);
    fragPos = vec3(view * model * vec4(aPos, 1.0));
    LightPos[0] = vec3(view * vec4(lightPos[0], 1.0));
    LightPos[1] = vec3(view * vec4(lightPos[1], 1.0));
