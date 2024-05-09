@@ -148,6 +148,7 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\boomGeometryShader.gs" />
     <None Include="shaders\borderFragmentShader.fs" />
     <None Include="shaders\borderVertexShader.vs" />
     <None Include="shaders\grassFragmentShader.fs" />

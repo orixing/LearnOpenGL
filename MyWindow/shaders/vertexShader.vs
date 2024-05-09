@@ -7,16 +7,22 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 lightPos[2];
 
-out vec2 TexCoords;
-out vec3 Normal;
-out vec3 fragPos;
-out vec3 LightPos[2];
+out VS_OUT {
+vec2 texCoords;
+vec3 position;
+vec3 Normal;
+vec3 fragPos;
+vec3 LightPos[2];
+} vs_out;
+
+
 void main()
 {
+	vs_out.texCoords = vec2(aTexCoords.x, 1-aTexCoords.y);
+	vs_out.position = aPos;
    gl_Position = projection * view * model * vec4(aPos, 1.0);
-   TexCoords = vec2(aTexCoords.x, 1-aTexCoords.y);
-   Normal =  mat3(transpose(inverse(view * model))) * vec3(-aNormal.x,aNormal.y,-aNormal.z);
-   fragPos = vec3(view * model * vec4(aPos, 1.0));
-   LightPos[0] = vec3(view * vec4(lightPos[0], 1.0));
-   LightPos[1] = vec3(view * vec4(lightPos[1], 1.0));
+   vs_out.Normal =  mat3(transpose(inverse(view * model))) * vec3(aNormal.x,aNormal.y,aNormal.z);
+   vs_out.fragPos = vec3(view * model * vec4(aPos, 1.0));
+   vs_out.LightPos[0] = vec3(view * vec4(lightPos[0], 1.0));
+   vs_out.LightPos[1] = vec3(view * vec4(lightPos[1], 1.0));
 }
