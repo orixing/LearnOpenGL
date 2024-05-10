@@ -70,6 +70,7 @@ int main(void)
     Shader screenShader("../../MyWindow/shaders/screenVertexShader.vs", "../../MyWindow/shaders/screenFragmentShader.fs");
     Shader skyboxShader("../../MyWindow/shaders/skyboxVertexShader.vs", "../../MyWindow/shaders/skyboxFragmentShader.fs");
     Shader mirrorCowShader("../../MyWindow/shaders/mirrorCowVertexShader.vs", "../../MyWindow/shaders/mirrorCowFragmentShader.fs");
+    Shader shadowShader("../../MyWindow/shaders/shadowVertexShader.vs", "../../MyWindow/shaders/shadowFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -259,12 +260,55 @@ int main(void)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    GLuint depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    GLuint depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+        SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
 
         glm::mat4 projection;
         glm::mat4 model;
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        GLfloat near_plane = 1.0f, far_plane = 7.5f;
+        glm::mat4 lightView = glm::lookAt(glm::vec3(3,1,3), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+        shadowShader.use();
+        shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        model = glm::mat4();
+        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        shadowShader.setMat4("model", model);
+        myModel.Draw(shadowShader);
+        model = glm::mat4();
+        model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
+        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        shadowShader.setMat4("model", model);
+        myModel.Draw(shadowShader);
+
+
+
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glViewport(0, 0, screenWidth, screenHeight);
@@ -295,17 +339,7 @@ int main(void)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
         glBlitFramebuffer(0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        //drawFbo2Screen(screenShader, camera, screenVAO, fboColorTexture);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        screenShader.use();
-        glBindVertexArray(screenVAO);
-        screenShader.setInt("screenTexture", 2);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        drawFbo2Screen(screenShader, camera, screenVAO, depthMap);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -397,8 +431,7 @@ void drawObj(Shader objShader, Camera camera, Model myModel) {
     glm::mat4 model;
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
     glStencilMask(0xFF); // 启用模板缓冲写入
-    glm::vec3 pointLightPos1(-3, 1, 3);
-    glm::vec3 pointLightPos2(3, 1, 3);
+    glm::vec3 pointLightPos1(3, 1, 3);
     objShader.use();
     objShader.setMat4("view", camera.GetViewMatrix());
     projection = glm::mat4();
@@ -407,8 +440,7 @@ void drawObj(Shader objShader, Camera camera, Model myModel) {
     model = glm::mat4();
     model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
     objShader.setMat4("model", model);
-    objShader.setVec3("lightPos[0]", pointLightPos1);
-    objShader.setVec3("lightPos[1]", pointLightPos2);
+    objShader.setVec3("lightPos", pointLightPos1);
     myModel.Draw(objShader);
     model = glm::mat4();
     model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));

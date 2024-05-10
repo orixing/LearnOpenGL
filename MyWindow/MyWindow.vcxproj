@@ -158,6 +158,8 @@
     <None Include="shaders\mirrorCowVertexShader.vs" />
     <None Include="shaders\screenFragmentShader.fs" />
     <None Include="shaders\screenVertexShader.vs" />
+    <None Include="shaders\shadowFragmentShader.fs" />
+    <None Include="shaders\shadowVertexShader.vs" />
     <None Include="shaders\skyboxFragmentShader.fs" />
     <None Include="shaders\skyboxVertexShader.vs" />
     <None Include="shaders\vertexShader.vs" />
