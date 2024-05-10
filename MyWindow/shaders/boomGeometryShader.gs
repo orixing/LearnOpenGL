@@ -8,7 +8,6 @@ in VS_OUT {
     vec3 Normal;
 vec3 fragPos;
 vec3 LightPos[2];
-mat4 model;
 } gs_in[];
 
 
@@ -20,10 +19,11 @@ out vec3 LightPos[2];
 
 uniform mat4 projection;
 uniform mat4 view;
+uniform mat4 model;
 
 vec4 explode(vec4 position, vec3 normal)
 {
-    vec3 direction = normal*0.0; 
+    vec3 direction = normal*0; 
     return position + vec4(direction, 0.0);
 }
 
@@ -38,11 +38,12 @@ vec3 GetNormal() {
 
 void main() {    
 
+    mat4 mvp = projection * view * model;
     vec3 normal = GetNormal();
     vec4 pos;
 
     pos = gs_in[0].position;
-    gl_Position = projection * view * gs_in[0].model * explode(pos, normal);
+    gl_Position = mvp * explode(pos, normal);
     TexCoords = gs_in[0].texCoords;
     Normal = gs_in[0].Normal;
     fragPos = gs_in[0].fragPos;
@@ -51,7 +52,7 @@ void main() {
     EmitVertex();
 
     pos = gs_in[1].position;
-    gl_Position =projection * view * gs_in[1].model *explode(pos, normal);
+    gl_Position = mvp * explode(pos, normal);
     TexCoords = gs_in[1].texCoords;
     Normal = gs_in[1].Normal;
     fragPos = gs_in[1].fragPos;
@@ -60,7 +61,7 @@ void main() {
     EmitVertex();
 
     pos = gs_in[2].position;
-    gl_Position = projection * view * gs_in[2].model * explode(pos, normal);
+    gl_Position = mvp * explode(pos, normal);
     TexCoords = gs_in[2].texCoords;
         Normal = gs_in[2].Normal;
     fragPos = gs_in[2].fragPos;

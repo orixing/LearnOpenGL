@@ -34,7 +34,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
+    glfwWindowHint(GLFW_SAMPLES, 4);
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -53,6 +53,7 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
+    glEnable(GL_MULTISAMPLE);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -164,22 +165,32 @@ int main(void)
     unsigned int fboColorTexture;
     glGenTextures(1, &fboColorTexture);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, fboColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboColorTexture, 0);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fboColorTexture);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, screenWidth, screenHeight, GL_TRUE);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, fboColorTexture, 0);
     unsigned int fboDepthStencilTexture;
     glGenRenderbuffers(1, &fboDepthStencilTexture);
     glBindRenderbuffer(GL_RENDERBUFFER, fboDepthStencilTexture);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fboDepthStencilTexture);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    unsigned int intermediateFBO;
+    glGenFramebuffers(1, &intermediateFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+
+    unsigned int screenTexture;
+    glGenTextures(1, &screenTexture);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);
     vector<std::string> faces
     {
         "../../MyWindow/skybox/px.png",
@@ -246,37 +257,6 @@ int main(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    ////创建新的动态贴图
-    unsigned int dynamicBoxTex;
-    glGenTextures(1, &dynamicBoxTex);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, dynamicBoxTex);
-    for (unsigned int i = 0; i < 6; i++)
-    {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    ////生成六个fbo
-    unsigned int fboArray[6];
-    glGenFramebuffers(6, fboArray);
-    for (int i = 0; i < 6; i++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, fboArray[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, dynamicBoxTex, 0);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-        unsigned int rbo;
-        glGenRenderbuffers(1, &rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1024, 1024);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
 
     while (!glfwWindowShouldClose(window))
     {
@@ -307,8 +287,14 @@ int main(void)
         glDepthFunc(GL_LESS);
 
         drawGrass(grassShader, camera, grassVAO);
-        //drawBorder(borderShader, camera, myModel);
-        drawFbo2Screen(screenShader, camera, screenVAO, fboColorTexture);
+        drawBorder(borderShader, camera, myModel);
+
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+        glBlitFramebuffer(0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+        //drawFbo2Screen(screenShader, camera, screenVAO, fboColorTexture);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -317,8 +303,6 @@ int main(void)
 
         screenShader.use();
         glBindVertexArray(screenVAO);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, fboColorTexture);
         screenShader.setInt("screenTexture", 2);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -409,6 +393,7 @@ unsigned int loadCubemap(vector<std::string> faces)
 
 void drawObj(Shader objShader, Camera camera, Model myModel) {
     glm::mat4 projection;
+    glm::mat4 model;
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
     glStencilMask(0xFF); // 启用模板缓冲写入
     glm::vec3 pointLightPos1(-3, 1, 3);
@@ -418,8 +403,16 @@ void drawObj(Shader objShader, Camera camera, Model myModel) {
     projection = glm::mat4();
     projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
     objShader.setMat4("projection", projection);
+    model = glm::mat4();
+    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+    objShader.setMat4("model", model);
     objShader.setVec3("lightPos[0]", pointLightPos1);
     objShader.setVec3("lightPos[1]", pointLightPos2);
+    myModel.Draw(objShader);
+    model = glm::mat4();
+    model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
+    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+    objShader.setMat4("model", model);
     myModel.Draw(objShader);
 }
 
@@ -450,6 +443,12 @@ void drawBorder(Shader borderShader, Camera camera, Model myModel) {
     projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
     borderShader.setMat4("projection", projection);
     model = glm::mat4();
+    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+    borderShader.setMat4("model", model);
+    myModel.Draw(borderShader);
+
+    model = glm::mat4();
+    model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
     model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
     borderShader.setMat4("model", model);
     myModel.Draw(borderShader);
