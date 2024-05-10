@@ -8,6 +8,7 @@ in VS_OUT {
     vec3 Normal;
 vec3 fragPos;
 vec3 LightPos;
+vec4 FragPosLightSpace;
 } gs_in[];
 
 
@@ -15,6 +16,7 @@ out vec2 TexCoords;
 out vec3 Normal;
 out vec3 fragPos;
 out vec3 LightPos;
+out vec4 FragPosLightSpace;
 
 
 uniform mat4 projection;
@@ -48,6 +50,7 @@ void main() {
     Normal = gs_in[0].Normal;
     fragPos = gs_in[0].fragPos;
     LightPos= gs_in[0].LightPos;
+    FragPosLightSpace = gs_in[0].FragPosLightSpace;
     EmitVertex();
 
     pos = gs_in[1].position;
@@ -56,6 +59,7 @@ void main() {
     Normal = gs_in[1].Normal;
     fragPos = gs_in[1].fragPos;
     LightPos = gs_in[1].LightPos;
+    FragPosLightSpace = gs_in[1].FragPosLightSpace;
     EmitVertex();
 
     pos = gs_in[2].position;
@@ -64,6 +68,7 @@ void main() {
         Normal = gs_in[2].Normal;
     fragPos = gs_in[2].fragPos;
     LightPos = gs_in[2].LightPos;
+        FragPosLightSpace = gs_in[2].FragPosLightSpace;
     EmitVertex();
     EndPrimitive();
 }

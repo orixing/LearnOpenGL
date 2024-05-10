@@ -17,7 +17,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadCubemap(vector<std::string> faces);
-void drawObj(Shader objShader,Camera camera, Model myModel);
+void drawObj(Shader objShader,Camera camera, Model myModel, unsigned int shadowTex);
 void drawFbo2Screen(Shader screenShader, Camera camera,unsigned int screenVAO, unsigned int fboColorTexture);
 void drawBorder(Shader borderShader, Camera camera, Model myModel);
 void drawGrass(Shader grassShader, Camera camera, unsigned int grassVAO);
@@ -290,7 +290,7 @@ int main(void)
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        GLfloat near_plane = 1.0f, far_plane = 7.5f;
+
         glm::mat4 lightView = glm::lookAt(glm::vec3(3,1,3), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -315,9 +315,11 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        drawObj(objShader, camera, myModel);
+        drawObj(objShader, camera, myModel, depthMap);
 
         glStencilMask(0x00);
+
+
 
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
@@ -339,7 +341,7 @@ int main(void)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
         glBlitFramebuffer(0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        drawFbo2Screen(screenShader, camera, screenVAO, depthMap);
+        drawFbo2Screen(screenShader, camera, screenVAO, fboColorTexture);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -426,7 +428,7 @@ unsigned int loadCubemap(vector<std::string> faces)
     return textureID;
 }
 
-void drawObj(Shader objShader, Camera camera, Model myModel) {
+void drawObj(Shader objShader, Camera camera, Model myModel, unsigned int shadowTex){
     glm::mat4 projection;
     glm::mat4 model;
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
@@ -441,6 +443,13 @@ void drawObj(Shader objShader, Camera camera, Model myModel) {
     model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
     objShader.setMat4("model", model);
     objShader.setVec3("lightPos", pointLightPos1);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, shadowTex);
+    objShader.setInt("shadowMap", 6);
+    glm::mat4 lightView = glm::lookAt(glm::vec3(3, 1, 3), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+    objShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     myModel.Draw(objShader);
     model = glm::mat4();
     model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
