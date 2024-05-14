@@ -153,6 +153,8 @@
     <None Include="shaders\borderVertexShader.vs" />
     <None Include="shaders\grassFragmentShader.fs" />
     <None Include="shaders\grassVertexShader.vs" />
+    <None Include="shaders\groundFragmentShader.fs" />
+    <None Include="shaders\groundVertexShader.vs" />
     <None Include="shaders\lightFregmentShader.fs" />
     <None Include="shaders\mirrorCowFragmentShader.fs" />
     <None Include="shaders\mirrorCowVertexShader.vs" />

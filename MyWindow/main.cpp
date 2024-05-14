@@ -17,7 +17,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadCubemap(vector<std::string> faces);
-void drawObj(Shader objShader,Camera camera, Model myModel, unsigned int shadowTex);
+void drawObj(Shader objShader,Camera camera, Model myModel);
 void drawFbo2Screen(Shader screenShader, Camera camera,unsigned int screenVAO, unsigned int fboColorTexture);
 void drawBorder(Shader borderShader, Camera camera, Model myModel);
 void drawGrass(Shader grassShader, Camera camera, unsigned int grassVAO);
@@ -71,6 +71,7 @@ int main(void)
     Shader skyboxShader("../../MyWindow/shaders/skyboxVertexShader.vs", "../../MyWindow/shaders/skyboxFragmentShader.fs");
     Shader mirrorCowShader("../../MyWindow/shaders/mirrorCowVertexShader.vs", "../../MyWindow/shaders/mirrorCowFragmentShader.fs");
     Shader shadowShader("../../MyWindow/shaders/shadowVertexShader.vs", "../../MyWindow/shaders/shadowFragmentShader.fs");
+    Shader groundShader("../../MyWindow/shaders/groundVertexShader.vs", "../../MyWindow/shaders/groundFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -279,6 +280,45 @@ int main(void)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+    float planeVertices[] = {
+        // positions                 // texcoords
+         20.0f, -0.75f,  20.0f,   1.0f,  0.0f,
+        -20.0f, -0.75f,  20.0f,     0.0f,  0.0f,
+        -20.0f, -0.75f, -20.0f,     0.0f, 1.0f,
+
+         20.0f, -0.75f,  20.0f,  1.0f,  0.0f,
+        -20.0f, -0.75f, -20.0f,     0.0f, 1.0f,
+         20.0f, -0.75f, -20.0f,    1.0f, 1.0f
+
+    };
+    unsigned int planeVAO;
+    glGenVertexArrays(1, &planeVAO);
+    unsigned int planeVBO;
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    unsigned int groundTex;
+    glGenTextures(1, &groundTex);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, groundTex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    data = stbi_load("../../MyWindow/skybox/ny.png", &width, &height, &nrChannels, 0);
+    //data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -302,24 +342,36 @@ int main(void)
         shadowShader.setMat4("model", model);
         myModel.Draw(shadowShader);
         model = glm::mat4();
-        model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
-        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
         shadowShader.setMat4("model", model);
         myModel.Draw(shadowShader);
 
 
-
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glViewport(0, 0, screenWidth, screenHeight);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        drawObj(objShader, camera, myModel, depthMap);
+        drawObj(objShader, camera, myModel);
 
         glStencilMask(0x00);
 
-
+        glm::vec3 pointLightPos1(3, 1, 3);
+        groundShader.use();
+        groundShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        groundShader.setInt("groundTex", 7);
+        projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
+        groundShader.setMat4("projection", projection);
+        groundShader.setMat4("view", camera.GetViewMatrix());
+        groundShader.setMat4("model", glm::mat4());
+        groundShader.setVec3("lightPos", pointLightPos1);
+        groundShader.setInt("shadowMap", 6);
+        glBindVertexArray(planeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
@@ -428,7 +480,7 @@ unsigned int loadCubemap(vector<std::string> faces)
     return textureID;
 }
 
-void drawObj(Shader objShader, Camera camera, Model myModel, unsigned int shadowTex){
+void drawObj(Shader objShader, Camera camera, Model myModel){
     glm::mat4 projection;
     glm::mat4 model;
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
@@ -443,17 +495,15 @@ void drawObj(Shader objShader, Camera camera, Model myModel, unsigned int shadow
     model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
     objShader.setMat4("model", model);
     objShader.setVec3("lightPos", pointLightPos1);
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, shadowTex);
     objShader.setInt("shadowMap", 6);
-    glm::mat4 lightView = glm::lookAt(glm::vec3(3, 1, 3), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 lightView = glm::lookAt(pointLightPos1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
     objShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     myModel.Draw(objShader);
     model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
-    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+    model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
+    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
     objShader.setMat4("model", model);
     myModel.Draw(objShader);
 }
@@ -490,8 +540,8 @@ void drawBorder(Shader borderShader, Camera camera, Model myModel) {
     myModel.Draw(borderShader);
 
     model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.0, 0.0, -1.0));
-    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+    model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
+    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
     borderShader.setMat4("model", model);
     myModel.Draw(borderShader);
 

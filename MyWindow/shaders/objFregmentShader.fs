@@ -10,20 +10,32 @@ uniform sampler2D spotTex;
 uniform sampler2D shadowMap;
 in vec3 LightPos;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec4 fragPosLightSpace,vec3 normal, vec3 lightDir)
 {
-    // 执行透视除法
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // 变换到[0,1]的范围
     projCoords = projCoords * 0.5 + 0.5;
-    // 取得最近点的深度(使用[0,1]范围下的fragPosLight当坐标)
-    float closestDepth = texture(shadowMap, projCoords.xy).r; 
-    // 取得当前片段在光源视角下的深度
-    float currentDepth = projCoords.z;
-    // 检查当前片段是否在阴影中
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
 
-    return shadow;
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    float currentDepth = projCoords.z;
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            projCoords  = vec3(projCoords.xy + vec2(x, y) * texelSize,projCoords.z);
+            if(projCoords.x <0.0 || projCoords.x >1.0 || projCoords.y <0.0 || projCoords.y >1.0){
+                shadow += 0.0;
+            } else{
+                float pcfDepth = texture(shadowMap, projCoords.xy).r; 
+                float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.001);
+                shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;      
+            }
+        }    
+    }
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+    return shadow / 9;
 }
 
 
@@ -48,7 +60,7 @@ void main()
         float spec = pow(max(dot(halfV, n), 0.0), 150);
         vec3 specular = ks * spec * lightIntensity / distance;
 
-        float shadow = ShadowCalculation(FragPosLightSpace);       
+        float shadow = ShadowCalculation(FragPosLightSpace, n, lightDir);       
         vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));    
 
     //FragColor = vec4(1.0);
