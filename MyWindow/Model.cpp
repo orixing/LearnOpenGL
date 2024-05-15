@@ -11,7 +11,7 @@ void Model::Draw(Shader shader)
 void Model::loadModel(string path)
 {
     Assimp::Importer import;
-    const aiScene * scene = import.ReadFile(path, aiProcess_Triangulate| aiProcess_FlipUVs | aiProcess_GenNormals);
+    const aiScene * scene = import.ReadFile(path, aiProcess_Triangulate| aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -57,6 +57,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vector.y = mesh->mNormals[i].y;
         vector.z = mesh->mNormals[i].z;
         vertex.Normal = vector;
+        vector.x = mesh->mTangents[i].x;
+        vector.y = mesh->mTangents[i].y;
+        vector.z = mesh->mTangents[i].z;
+        vertex.Tangent = vector;
+        //std::cout << vertex.Tangent.x << " " << vertex.Tangent.y << " " << vertex.Tangent.z << " " << std::endl;
         if (mesh->mTextureCoords[0]) // 网格是否有纹理坐标？
         {
             glm::vec2 vec;

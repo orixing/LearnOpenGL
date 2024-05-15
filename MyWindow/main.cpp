@@ -17,7 +17,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadCubemap(vector<std::string> faces);
-void drawObj(Shader objShader,Camera camera, Model myModel);
+void drawObj(Shader objShader,Camera camera, Model myModel, glm::mat4 ModelMatrix);
 void drawFbo2Screen(Shader screenShader, Camera camera,unsigned int screenVAO, unsigned int fboColorTexture);
 void drawBorder(Shader borderShader, Camera camera, Model myModel);
 void drawGrass(Shader grassShader, Camera camera, unsigned int grassVAO);
@@ -72,6 +72,7 @@ int main(void)
     Shader mirrorCowShader("../../MyWindow/shaders/mirrorCowVertexShader.vs", "../../MyWindow/shaders/mirrorCowFragmentShader.fs");
     Shader shadowShader("../../MyWindow/shaders/shadowVertexShader.vs", "../../MyWindow/shaders/shadowFragmentShader.fs");
     Shader groundShader("../../MyWindow/shaders/groundVertexShader.vs", "../../MyWindow/shaders/groundFragmentShader.fs");
+    Shader normalCowShader("../../MyWindow/shaders/normalCowVertexShader.vs", "../../MyWindow/shaders/normalCowGeometryShader.gs", "../../MyWindow/shaders/normalCowFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -154,8 +155,22 @@ int main(void)
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
+    unsigned int normalTex;
+    glGenTextures(1, &normalTex);
+    glActiveTexture(GL_TEXTURE9);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, normalTex);
+    data = stbi_load("../../MyWindow/spot/hmap.jpg", &width, &height, &nrChannels, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
     objShader.use();
     objShader.setInt("spotTex", 0);
+    normalCowShader.use();
+    normalCowShader.setInt("spotTex", 0);
+    normalCowShader.setInt("normalTex", 9);
     grassShader.use();
     grassShader.setInt("grassTex", 1);
 
@@ -335,16 +350,16 @@ int main(void)
         glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
+        glm::mat4 objModel1, objModel2;
+        objModel1 = glm::rotate(objModel1, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        objModel2 = glm::translate(objModel2, glm::vec3(-1.3, 0.0, -0.5));
+        objModel2 = glm::rotate(objModel2, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+
         shadowShader.use();
         shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        model = glm::mat4();
-        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-        shadowShader.setMat4("model", model);
+        shadowShader.setMat4("model", objModel1);
         myModel.Draw(shadowShader);
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
-        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-        shadowShader.setMat4("model", model);
+        shadowShader.setMat4("model", objModel2);
         myModel.Draw(shadowShader);
 
 
@@ -356,7 +371,11 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        drawObj(objShader, camera, myModel);
+
+        model = glm::mat4();
+        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        drawObj(objShader, camera, myModel, objModel1);
+        drawObj(normalCowShader, camera, myModel, objModel2);
 
         glStencilMask(0x00);
 
@@ -480,9 +499,8 @@ unsigned int loadCubemap(vector<std::string> faces)
     return textureID;
 }
 
-void drawObj(Shader objShader, Camera camera, Model myModel){
+void drawObj(Shader objShader, Camera camera, Model myModel, glm::mat4 ModelMatrix){
     glm::mat4 projection;
-    glm::mat4 model;
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
     glStencilMask(0xFF); // 启用模板缓冲写入
     glm::vec3 pointLightPos1(3, 1, 3);
@@ -491,20 +509,13 @@ void drawObj(Shader objShader, Camera camera, Model myModel){
     projection = glm::mat4();
     projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
     objShader.setMat4("projection", projection);
-    model = glm::mat4();
-    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-    objShader.setMat4("model", model);
+    objShader.setMat4("model", ModelMatrix);
     objShader.setVec3("lightPos", pointLightPos1);
     objShader.setInt("shadowMap", 6);
     glm::mat4 lightView = glm::lookAt(pointLightPos1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
     objShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-    myModel.Draw(objShader);
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
-    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-    objShader.setMat4("model", model);
     myModel.Draw(objShader);
 }
 
