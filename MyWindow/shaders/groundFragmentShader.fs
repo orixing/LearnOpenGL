@@ -26,7 +26,7 @@ float ShadowCalculation(vec4 fragPosLightSpace,vec3 normal, vec3 lightDir)
                 shadow += 0.0;
             } else{
                 float pcfDepth = texture(shadowMap, projCoords.xy).r; 
-                float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.001);
+                float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0001);
                 shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;      
             }
         }    
@@ -36,13 +36,14 @@ float ShadowCalculation(vec4 fragPosLightSpace,vec3 normal, vec3 lightDir)
     return shadow / 25;
 }
 
+
 void main()
 {
     vec4 color = texture(groundTex, TexCoords);
     float shadow = ShadowCalculation(FragPosLightSpace,normalize(Normal), normalize(LightPos-FragPos));
+    //shadow = 0.0;
     color = color * (1-shadow);
 
     FragColor = vec4(color.xyz,1.0);
     //FragColor = vec4(normalize(Normal),1.0);
-    //FragColor = vec4(shadow,shadow,shadow,1.0);
 }
