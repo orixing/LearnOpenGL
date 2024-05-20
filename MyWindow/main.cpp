@@ -52,7 +52,7 @@ int main(void)
     }
 
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_STENCIL_TEST);
+    glEnable(GL_STENCIL_TEST);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_FRAMEBUFFER_SRGB);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -65,7 +65,9 @@ int main(void)
 
     Shader lightShader("../../MyWindow/shaders/vertexShader.vs", "../../MyWindow/shaders/lightFregmentShader.fs");
     Shader objShader("../../MyWindow/shaders/objScreenVertexShader.vs","../../MyWindow/shaders/objFregmentShader.fs");
+    Shader borderRenderShader("../../MyWindow/shaders/borderRenderVertexShader.vs", "../../MyWindow/shaders/borderRenderFragmentShader.fs");
     Shader borderShader("../../MyWindow/shaders/borderVertexShader.vs", "../../MyWindow/shaders/borderFragmentShader.fs");
+    Shader gBorderShader("../../MyWindow/shaders/GBorderVertexShader.vs", "../../MyWindow/shaders/GBorderFragmentShader.fs");
     Shader grassShader("../../MyWindow/shaders/grassVertexShader.vs", "../../MyWindow/shaders/grassFragmentShader.fs");
     Shader screenShader("../../MyWindow/shaders/screenVertexShader.vs", "../../MyWindow/shaders/screenFragmentShader.fs");
     Shader skyboxShader("../../MyWindow/shaders/skyboxVertexShader.vs", "../../MyWindow/shaders/skyboxFragmentShader.fs");
@@ -322,7 +324,7 @@ int main(void)
     GLuint gBuffer;
     glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    GLuint gFragColor, gPosition, gNormal, gAlbedoSpec, gFragPosInLight;
+    GLuint gFragColor, gPosition, gNormal, gAlbedoSpec, gFragPosInLight, gBorder;
 
     // - 位置颜色缓冲
     glGenTextures(1, &gFragColor);
@@ -368,19 +370,59 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gFragPosInLight, 0);
 
+    // - 颜色 + 镜面颜色缓冲
+    glGenTextures(1, &gBorder);
+    glActiveTexture(GL_TEXTURE15);
+    glBindTexture(GL_TEXTURE_2D, gBorder);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenWidth, screenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gBorder, 0);
+
     // - 告诉OpenGL我们将要使用(帧缓冲的)哪种颜色附件来进行渲染
-    GLuint attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3 ,GL_COLOR_ATTACHMENT4};
-    glDrawBuffers(5, attachments);
+    GLuint attachments[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3 ,GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
+    glDrawBuffers(6, attachments);
 
     // 之后同样添加渲染缓冲对象(Render Buffer Object)为深度缓冲(Depth Buffer)，并检查完整性
     GLuint rboDepth;
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
+    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     // - Finally check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
+
+
+    /*GLuint gBorderBuffer;
+    glGenFramebuffers(1, &gBorderBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, gBorderBuffer);
+    GLuint gBorderColor;
+
+    glGenTextures(1, &gBorderColor);
+    glActiveTexture(GL_TEXTURE15);
+    glBindTexture(GL_TEXTURE_2D, gBorderColor);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gBorderColor, 0);
+
+    GLuint attachments2[1] = { GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, attachments2);
+
+    GLuint borderDepth;
+    glGenRenderbuffers(1, &borderDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, borderDepth);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, borderDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Border Framebuffer not complete!" << std::endl;*/
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     while (!glfwWindowShouldClose(window))
@@ -405,12 +447,8 @@ int main(void)
         GShader.setMat4("projection", projection);
         GShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         GShader.setInt("spotTex", 0);
-
-        model = glm::mat4();
-        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-
-        glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
         glStencilMask(0xFF); // 启用模板缓冲写入
+        glStencilFunc(GL_ALWAYS, 0xFF, 0xFF); // 所有的片段都应该更新模板缓冲
         model = glm::mat4();
         model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
         GShader.setMat4("model", model);
@@ -420,11 +458,37 @@ int main(void)
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
         GShader.setMat4("model", model);
         myModel.Draw(GShader);
+        //--------Gpass 描边
+        glDisable(GL_DEPTH_TEST);
+        glStencilFunc(GL_NOTEQUAL,0xFF, 0xFF); 
+        glStencilMask(0x0F);
+        gBorderShader.use();
 
-        //Shadow Pass
+        gBorderShader.setMat4("view", camera.GetViewMatrix());
+        projection = glm::mat4();
+        projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
+        gBorderShader.setMat4("projection", projection);
+        model = glm::mat4();
+        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        gBorderShader.setMat4("model", model);
+        myModel.Draw(gBorderShader);
+
+        model = glm::mat4();
+        model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+        gBorderShader.setMat4("model", model);
+        myModel.Draw(gBorderShader);
+
+        glEnable(GL_DEPTH_TEST);
+
+        glStencilFunc(GL_ALWAYS, 0xFF, 0xFF);
+        glStencilMask(0x00);
+        //-------- 
+
+        //-----------Shadow Pass
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
         shadowShader.use();
@@ -447,18 +511,6 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         objShader.use();
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-        glActiveTexture(GL_TEXTURE10);
-        glBindTexture(GL_TEXTURE_2D, gFragColor);
-        glActiveTexture(GL_TEXTURE11);
-        glBindTexture(GL_TEXTURE_2D, gPosition);
-        glActiveTexture(GL_TEXTURE12);
-        glBindTexture(GL_TEXTURE_2D, gNormal);
-        glActiveTexture(GL_TEXTURE13);
-        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-        glActiveTexture(GL_TEXTURE14);
-        glBindTexture(GL_TEXTURE_2D, gFragPosInLight);
         glBindVertexArray(screenVAO);
         objShader.setInt("shadowMap", 6);
         objShader.setInt("gFragColor", 10);
@@ -469,6 +521,8 @@ int main(void)
         objShader.setMat4("view", camera.GetViewMatrix());
         objShader.setVec3("lightPos", pointLightPos1);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
 
 
         glActiveTexture(GL_TEXTURE6);
@@ -483,7 +537,6 @@ int main(void)
         );
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-        glStencilMask(0x00);
         groundShader.use();
         groundShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         groundShader.setInt("groundTex", 7);
@@ -508,8 +561,31 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthFunc(GL_LESS);
 
-        //drawGrass(grassShader, camera, grassVAO);
-        //drawBorder(borderShader, camera, myModel);
+        drawGrass(grassShader, camera, grassVAO);
+
+        //----------渲染Pass 描边
+
+        //复制模板缓冲
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+        glBlitFramebuffer(
+            0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_STENCIL_BUFFER_BIT, GL_NEAREST
+        );
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        glStencilFunc(GL_EQUAL, 0x0F, 0xFF);
+        glStencilMask(0x00); // 禁止模板缓冲的写入
+
+        borderRenderShader.use();
+        glDisable(GL_DEPTH_TEST);
+        glBindVertexArray(screenVAO);
+        borderRenderShader.setInt("colorTex", 15);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glStencilFunc(GL_ALWAYS, 0xFF, 0xFF);
+        glStencilMask(0xFF);
+        glEnable(GL_DEPTH_TEST);
+        //----------
 
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
