@@ -168,6 +168,9 @@
     <None Include="shaders\shadowVertexShader.vs" />
     <None Include="shaders\skyboxFragmentShader.fs" />
     <None Include="shaders\skyboxVertexShader.vs" />
+    <None Include="shaders\SSAOBlurFragmentShader.fs" />
+    <None Include="shaders\SSAOFregmentShader.fs" />
+    <None Include="shaders\SSAOVertexShader.vs" />
     <None Include="shaders\vertexShader.vs" />
     <None Include="shaders\objFregmentShader.fs" />
   </ItemGroup>

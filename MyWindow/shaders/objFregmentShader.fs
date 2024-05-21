@@ -8,6 +8,7 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform sampler2D gFragPosLightSpace;
+uniform sampler2D texSSAO;
 in  vec2 testCoords;
 
 float ShadowCalculation(vec4 fragPosLightSpace,vec3 normal, vec3 lightDir)
@@ -44,10 +45,11 @@ void main()
 	  vec3 fragPos = texture(gPosition, TexCoords).rgb;
       vec3 Normal = texture(gNormal, TexCoords).rgb;
       vec3 Albedo = texture(gAlbedoSpec, TexCoords).rgb;
+     float ssao = texture(texSSAO, TexCoords).r;
 
       vec3 ambLightIntensity = vec3(1.0,1.0,1.0);
       vec3 ka = vec3(0.05,0.05,0.05);
-      vec3 ambient = ka * ambLightIntensity;
+      vec3 ambient = ka * ambLightIntensity * ssao;
 
       vec3 lightIntensity = vec3(5.0,5.0,5.0);
       vec3 kd = Albedo;

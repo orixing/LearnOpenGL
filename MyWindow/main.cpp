@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "Model.h"
 #include <map> 
+#include <random> 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
 
@@ -75,6 +76,8 @@ int main(void)
     Shader shadowShader("../../MyWindow/shaders/shadowVertexShader.vs", "../../MyWindow/shaders/shadowFragmentShader.fs");
     Shader groundShader("../../MyWindow/shaders/groundVertexShader.vs", "../../MyWindow/shaders/groundFragmentShader.fs");
     Shader GShader("../../MyWindow/shaders/GVertexShader.vs", "../../MyWindow/shaders/GFregmentShader.fs");
+    Shader SSAOShader("../../MyWindow/shaders/SSAOVertexShader.vs", "../../MyWindow/shaders/SSAOFregmentShader.fs");
+    Shader SSAOBlurShader("../../MyWindow/shaders/SSAOVertexShader.vs", "../../MyWindow/shaders/SSAOBlurFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -170,7 +173,7 @@ int main(void)
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     unsigned int fboColorTexture;
     glGenTextures(1, &fboColorTexture);
-    glActiveTexture(GL_TEXTURE2);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fboColorTexture);
     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_SRGB, screenWidth, screenHeight, GL_TRUE);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
@@ -206,7 +209,7 @@ int main(void)
         "../../MyWindow/skybox/pz.png",
         "../../MyWindow/skybox/nz.png",
     };
-    glActiveTexture(GL_TEXTURE3);
+    glActiveTexture(GL_TEXTURE0);
     unsigned int skyboxTexture = loadCubemap(faces);
 
     float skyboxVertices[] = {
@@ -308,7 +311,7 @@ int main(void)
 
     unsigned int groundTex;
     glGenTextures(1, &groundTex);
-    glActiveTexture(GL_TEXTURE7);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, groundTex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -324,7 +327,7 @@ int main(void)
     GLuint gBuffer;
     glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    GLuint gFragColor, gPosition, gNormal, gAlbedoSpec, gFragPosInLight, gBorder;
+    GLuint gFragColor, gPositionDepth, gNormal, gAlbedoSpec, gFragPosInLight, gBorder;
 
     // - 位置颜色缓冲
     glGenTextures(1, &gFragColor);
@@ -336,13 +339,15 @@ int main(void)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gFragColor, 0);
 
     // - 位置颜色缓冲
-    glGenTextures(1, &gPosition);
+    glGenTextures(1, &gPositionDepth);
     glActiveTexture(GL_TEXTURE11);
-    glBindTexture(GL_TEXTURE_2D, gPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glBindTexture(GL_TEXTURE_2D, gPositionDepth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screenWidth, screenHeight, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gPosition, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gPositionDepth, 0);
 
     // - 法线颜色缓冲
     glGenTextures(1, &gNormal);
@@ -370,7 +375,7 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gFragPosInLight, 0);
 
-    // - 颜色 + 镜面颜色缓冲
+    //
     glGenTextures(1, &gBorder);
     glActiveTexture(GL_TEXTURE15);
     glBindTexture(GL_TEXTURE_2D, gBorder);
@@ -378,6 +383,7 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gBorder, 0);
+
 
     // - 告诉OpenGL我们将要使用(帧缓冲的)哪种颜色附件来进行渲染
     GLuint attachments[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3 ,GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
@@ -387,8 +393,6 @@ int main(void)
     GLuint rboDepth;
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
-    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
@@ -396,32 +400,70 @@ int main(void)
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
 
+    //---------------预准备SSAO数据
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // 随机浮点数，范围0.0 - 1.0
+    std::default_random_engine generator;
+    std::vector<glm::vec3> ssaoKernel;
+    for (GLuint i = 0; i < 64; ++i)
+    {
+        glm::vec3 sample(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator)
+        );
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+        GLfloat scale = GLfloat(i) / 64.0;
+        scale = 0.1 + 0.9 * scale * scale;
+        sample *= scale;
+        ssaoKernel.push_back(sample);
+        ssaoKernel.push_back(sample);
+    }
 
-    /*GLuint gBorderBuffer;
-    glGenFramebuffers(1, &gBorderBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, gBorderBuffer);
-    GLuint gBorderColor;
+    std::vector<glm::vec3> ssaoNoise;
+    for (GLuint i = 0; i < 16; i++)
+    {
+        glm::vec3 noise(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            0.0f);
+        ssaoNoise.push_back(noise);
+    }
 
-    glGenTextures(1, &gBorderColor);
-    glActiveTexture(GL_TEXTURE15);
-    glBindTexture(GL_TEXTURE_2D, gBorderColor);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    GLuint ssaoNoiseTexture;
+    glGenTextures(1, &ssaoNoiseTexture);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gBorderColor, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    GLuint attachments2[1] = { GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, attachments2);
+    GLuint ssaoFBO;
+    glGenFramebuffers(1, &ssaoFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+    GLuint ssaoColorBuffer;
 
-    GLuint borderDepth;
-    glGenRenderbuffers(1, &borderDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, borderDepth);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, borderDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glGenTextures(1, &ssaoColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Border Framebuffer not complete!" << std::endl;*/
+    GLuint ssaoBlurFBO, ssaoColorBufferBlur;
+    glGenFramebuffers(1, &ssaoBlurFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+    glGenTextures(1, &ssaoColorBufferBlur);
+    glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
+
+
+    //---------------
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -436,6 +478,7 @@ int main(void)
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
         glm::vec3 pointLightPos1(3, 1, 3);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //GPass
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -446,6 +489,8 @@ int main(void)
         GShader.setMat4("view", camera.GetViewMatrix());
         GShader.setMat4("projection", projection);
         GShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureMap);
         GShader.setInt("spotTex", 0);
         glStencilMask(0xFF); // 启用模板缓冲写入
         glStencilFunc(GL_ALWAYS, 0xFF, 0xFF); // 所有的片段都应该更新模板缓冲
@@ -485,6 +530,40 @@ int main(void)
         glStencilMask(0x00);
         //-------- 
 
+        //----------------SSAO
+        glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+        glBindVertexArray(screenVAO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        SSAOShader.use();
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, gPositionDepth);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+        for (GLuint i = 0; i < 64; ++i) {
+            SSAOShader.setVec3(("samples[" + std::to_string(i) + "]").c_str(), ssaoKernel[i]);
+        }
+        SSAOShader.setInt("gPositionDepth", 3);
+        SSAOShader.setInt("gNormal", 4);
+        SSAOShader.setInt("texNoise", 5);
+        projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
+        SSAOShader.setMat4("projection", projection);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        SSAOBlurShader.use();
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+        SSAOBlurShader.setInt("ssaoInput",3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+        //---------------
+
         //-----------Shadow Pass
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -502,7 +581,7 @@ int main(void)
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
         shadowShader.setMat4("model", model);
         myModel.Draw(shadowShader);
-
+        //-----------
 
         //渲染Pass
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -518,11 +597,12 @@ int main(void)
         objShader.setInt("gNormal", 12);
         objShader.setInt("gAlbedoSpec", 13);
         objShader.setInt("gFragPosLightSpace", 14);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+        objShader.setInt("texSSAO", 7);
         objShader.setMat4("view", camera.GetViewMatrix());
         objShader.setVec3("lightPos", pointLightPos1);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
 
 
         glActiveTexture(GL_TEXTURE6);
@@ -539,7 +619,9 @@ int main(void)
 
         groundShader.use();
         groundShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        groundShader.setInt("groundTex", 7);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, groundTex);
+        groundShader.setInt("groundTex", 0);
         projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
         groundShader.setMat4("projection", projection);
         groundShader.setMat4("view", camera.GetViewMatrix());
@@ -551,7 +633,9 @@ int main(void)
 
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
-        skyboxShader.setInt("skybox", 3);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+        skyboxShader.setInt("skybox", 0);
         projection = glm::mat4();
         projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
         skyboxShader.setMat4("projection", projection);
