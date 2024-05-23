@@ -162,6 +162,8 @@
     <None Include="shaders\mirrorCowFragmentShader.fs" />
     <None Include="shaders\mirrorCowVertexShader.vs" />
     <None Include="shaders\objScreenVertexShader.vs" />
+    <None Include="shaders\PBRFragmentShader.fs" />
+    <None Include="shaders\PBRVertexShader.vs" />
     <None Include="shaders\screenFragmentShader.fs" />
     <None Include="shaders\screenVertexShader.vs" />
     <None Include="shaders\shadowFragmentShader.fs" />

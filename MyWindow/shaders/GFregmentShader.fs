@@ -8,12 +8,13 @@ layout (location = 1) out vec4 gPositionDepth;
 layout (location = 2) out vec4 gNormal;
 layout (location = 3) out vec4 gAlbedoSpec;
 layout (location = 4) out vec4 gFragPosInLight;
+layout (location = 6) out vec4 gExtra;
 
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
 in vec4 FragPosLightSpace;
-
+uniform bool isPBR;
 uniform sampler2D spotTex;
 
 
@@ -40,4 +41,5 @@ void main()
     // 存储镜面强度到gAlbedoSpec的alpha分量
     //gAlbedoSpec.a = texture(texture_specular1, TexCoords).r;
     gFragPosInLight = vec4(FragPosLightSpace.xyz/FragPosLightSpace.w,1.0);
+    gExtra = isPBR?vec4(1.0):vec4(0.0);
 }  

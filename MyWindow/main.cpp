@@ -78,6 +78,7 @@ int main(void)
     Shader GShader("../../MyWindow/shaders/GVertexShader.vs", "../../MyWindow/shaders/GFregmentShader.fs");
     Shader SSAOShader("../../MyWindow/shaders/SSAOVertexShader.vs", "../../MyWindow/shaders/SSAOFregmentShader.fs");
     Shader SSAOBlurShader("../../MyWindow/shaders/SSAOVertexShader.vs", "../../MyWindow/shaders/SSAOBlurFragmentShader.fs");
+    Shader PBRShader("../../MyWindow/shaders/PBRVertexShader.vs", "../../MyWindow/shaders/PBRFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -327,7 +328,7 @@ int main(void)
     GLuint gBuffer;
     glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    GLuint gFragColor, gPositionDepth, gNormal, gAlbedoSpec, gFragPosInLight, gBorder;
+    GLuint gFragColor, gPositionDepth, gNormal, gAlbedoSpec, gFragPosInLight, gBorder, gExtra;
 
     // - 位置颜色缓冲
     glGenTextures(1, &gFragColor);
@@ -384,10 +385,18 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gBorder, 0);
 
+    glGenTextures(1, &gExtra);
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, gExtra);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, gExtra, 0);
+
 
     // - 告诉OpenGL我们将要使用(帧缓冲的)哪种颜色附件来进行渲染
-    GLuint attachments[6] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3 ,GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
-    glDrawBuffers(6, attachments);
+    GLuint attachments[7] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3 ,GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 ,GL_COLOR_ATTACHMENT6};
+    glDrawBuffers(7, attachments);
 
     // 之后同样添加渲染缓冲对象(Render Buffer Object)为深度缓冲(Depth Buffer)，并检查完整性
     GLuint rboDepth;
@@ -496,11 +505,13 @@ int main(void)
         glStencilFunc(GL_ALWAYS, 0xFF, 0xFF); // 所有的片段都应该更新模板缓冲
         model = glm::mat4();
         model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
+        GShader.setBool("isPBR", true);
         GShader.setMat4("model", model);
         myModel.Draw(GShader);
         model = glm::mat4();
         model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
+        GShader.setBool("isPBR", false);
         GShader.setMat4("model", model);
         myModel.Draw(GShader);
         //--------Gpass 描边
@@ -589,19 +600,38 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        objShader.use();
+        //objShader.use();
+        //glBindVertexArray(screenVAO);
+        //objShader.setInt("shadowMap", 6);
+        //objShader.setInt("gFragColor", 10);
+        //objShader.setInt("gPosition", 11);
+        //objShader.setInt("gNormal", 12);
+        //objShader.setInt("gAlbedoSpec", 13);
+        //objShader.setInt("gFragPosLightSpace", 14);
+        //glActiveTexture(GL_TEXTURE7);
+        //glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+        //objShader.setInt("texSSAO", 7);
+        //objShader.setMat4("view", camera.GetViewMatrix());
+        //objShader.setVec3("lightPos", pointLightPos1);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        PBRShader.use();
         glBindVertexArray(screenVAO);
-        objShader.setInt("shadowMap", 6);
-        objShader.setInt("gFragColor", 10);
-        objShader.setInt("gPosition", 11);
-        objShader.setInt("gNormal", 12);
-        objShader.setInt("gAlbedoSpec", 13);
-        objShader.setInt("gFragPosLightSpace", 14);
+        PBRShader.setInt("shadowMap", 6);
+        PBRShader.setInt("gExtra", 9);
+        //PBRShader.setInt("gFragColor", 10);
+        PBRShader.setInt("gPosition", 11);
+        PBRShader.setInt("gNormal", 12);
+        PBRShader.setInt("gAlbedo", 13);
+        PBRShader.setInt("gFragPosLightSpace", 14);
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
-        objShader.setInt("texSSAO", 7);
-        objShader.setMat4("view", camera.GetViewMatrix());
-        objShader.setVec3("lightPos", pointLightPos1);
+        PBRShader.setInt("texSSAO", 7);
+        PBRShader.setMat4("view", camera.GetViewMatrix());
+        PBRShader.setVec3("lightPos", pointLightPos1);
+        PBRShader.setFloat("metallic", 0.15f);
+        PBRShader.setFloat("roughness", 0.3f);
+        PBRShader.setVec3("lightColor", glm::vec3(50.0f, 50.0f, 50.0f));
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
