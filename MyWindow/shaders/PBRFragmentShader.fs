@@ -4,6 +4,10 @@ in vec2 TexCoords;
 in vec3 LightPos;
 uniform vec3 lightColor;
 
+uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D   brdfLUT;  
+
 uniform sampler2D shadowMap;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
@@ -12,8 +16,6 @@ uniform sampler2D gAlbedo;
 uniform sampler2D gFragPosLightSpace;
 uniform sampler2D gExtra;
 
-uniform float metallic;
-uniform float roughness;
 
 const float PI = 3.14159265359;
 
@@ -49,6 +51,11 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }  
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}   
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -93,6 +100,8 @@ void main()
       vec3 albedo = texture(gAlbedo, TexCoords).rgb;
       float ao = texture(texSSAO, TexCoords).r;
       bool isPBR = texture(gExtra, TexCoords).r == 1.0;
+      float metallic = texture(gExtra, TexCoords).g;
+      float roughness = texture(gExtra, TexCoords).b;
 
     vec3 N = normalize(Normal); 
     vec3 V = normalize(-WorldPos);//世界坐标到视线的向量
@@ -107,7 +116,7 @@ void main()
 
     if(isPBR){
         vec3 F0 = mix(vec3(0.04), albedo, metallic);
-        vec3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        vec3 F  = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
         float NDF = DistributionGGX(N, H, roughness);       
         float G   = GeometrySmith(N, V, L, roughness); 
         vec3 nominator    = NDF * G * F;
@@ -120,16 +129,29 @@ void main()
         float NdotL = max(dot(N, L), 0.0);        
         Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1-shadow);
 
-        vec3 ambient = vec3(0.0005) * albedo * ao;
-        vec3 color   = ambient + Lo;  
+        //漫反射环境光 1-F * 1-m * c * L（PI已经处理过了）* ao
+
+        vec3 ambientDiffuse = (1 - F) * (1-metallic) * texture(irradianceMap, N).rgb * ao * albedo;
+
+        //镜面环境光
+        vec3 R = reflect(-V, N);   
+        const float MAX_REFLECTION_LOD = 4.0;
+        vec3 envLight = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;  
+        vec2 envBRDF  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 envSpecular = envLight * (F0 * envBRDF.x + envBRDF.y) * ao;
+
+
+        //vec3 ambient = vec3(0.0005) * albedo * ao;
+        vec3 color   = 0.18*ambientDiffuse  +  0.18*envSpecular + Lo;  
+        //vec3 color   =  vec3(F0 * envBRDF.x + envBRDF.y);
 
         color = color / (color + vec3(1.0));
         color = pow(color, vec3(1.0/2.2)); 
         FragColor = vec4(color, 1.0);
     }
     
-        else{
-        vec3 ambLightIntensity = vec3(1.0,1.0,1.0);
+     else{
+      vec3 ambLightIntensity = vec3(1.0,1.0,1.0);
       vec3 ka = vec3(0.0005,0.0005,0.0005);
       vec3 ambient = ka * ambLightIntensity * ao;
 
@@ -144,13 +166,10 @@ void main()
       vec3 specular = ks * spec * lightIntensity / distance;
 
       float shadow = ShadowCalculation(FragPosLightSpace, N, L);
-      vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));   
-        if(Normal == vec3(0.0,0.0,0.0)){
-            FragColor = vec4(0.0,0.0,0.0,1.0);
-        } else{
-            lighting = pow(lighting, vec3(1.0/2.2)); 
-            FragColor = vec4(lighting,1.0);
-        }
+      vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));  
+      
+      lighting = pow(lighting, vec3(1.0/2.2)); 
+      FragColor = vec4(lighting,1.0);
     }
 
 }

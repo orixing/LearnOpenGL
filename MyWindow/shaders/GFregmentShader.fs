@@ -15,6 +15,8 @@ in vec3 Normal;
 in vec3 FragPos;
 in vec4 FragPosLightSpace;
 uniform bool isPBR;
+uniform float metallic;
+uniform float roughness;
 uniform sampler2D spotTex;
 
 
@@ -42,4 +44,6 @@ void main()
     //gAlbedoSpec.a = texture(texture_specular1, TexCoords).r;
     gFragPosInLight = vec4(FragPosLightSpace.xyz/FragPosLightSpace.w,1.0);
     gExtra = isPBR?vec4(1.0):vec4(0.0);
+    gExtra.y = metallic;
+    gExtra.z = roughness;
 }  

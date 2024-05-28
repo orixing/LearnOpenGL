@@ -28,7 +28,7 @@ void main()
     {
         // 获取样本位置
         vec3 sample = TBN * samples[i]; // 切线->观察空间
-        float radius = 1.5;
+        float radius = 3;
         sample = fragPos + sample * radius; 
 
         vec4 offset = vec4(sample, 1.0);

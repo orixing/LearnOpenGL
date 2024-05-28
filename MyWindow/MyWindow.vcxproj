@@ -152,12 +152,16 @@
     <None Include="shaders\boomGeometryShader.gs" />
     <None Include="shaders\borderFragmentShader.fs" />
     <None Include="shaders\borderVertexShader.vs" />
+    <None Include="shaders\diffuseCubeFragmentShader.fs" />
+    <None Include="shaders\diffuseCubeVertexShader.vs" />
     <None Include="shaders\GFregmentShader.fs" />
     <None Include="shaders\grassFragmentShader.fs" />
     <None Include="shaders\grassVertexShader.vs" />
     <None Include="shaders\groundFragmentShader.fs" />
     <None Include="shaders\groundVertexShader.vs" />
     <None Include="shaders\GVertexShader.vs" />
+    <None Include="shaders\HDR2CubeFragmentShader.fs" />
+    <None Include="shaders\HDR2CubeVertexShader.vs" />
     <None Include="shaders\lightFregmentShader.fs" />
     <None Include="shaders\mirrorCowFragmentShader.fs" />
     <None Include="shaders\mirrorCowVertexShader.vs" />
@@ -170,6 +174,8 @@
     <None Include="shaders\shadowVertexShader.vs" />
     <None Include="shaders\skyboxFragmentShader.fs" />
     <None Include="shaders\skyboxVertexShader.vs" />
+    <None Include="shaders\specularBRDFFragmentShader.fs" />
+    <None Include="shaders\specularCubeFragmentShader.fs" />
     <None Include="shaders\SSAOBlurFragmentShader.fs" />
     <None Include="shaders\SSAOFregmentShader.fs" />
     <None Include="shaders\SSAOVertexShader.vs" />

@@ -39,6 +39,9 @@
     <ClCompile Include="Model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="shaders\源.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -74,5 +77,21 @@
     <None Include="shaders\skyboxVertexShader.vs" />
     <None Include="shaders\shadowVertexShader.vs" />
     <None Include="shaders\shadowFragmentShader.fs" />
+    <None Include="shaders\diffuseCubeFragmentShader.fs" />
+    <None Include="shaders\diffuseCubeVertexShader.vs" />
+    <None Include="shaders\GFregmentShader.fs" />
+    <None Include="shaders\groundFragmentShader.fs" />
+    <None Include="shaders\groundVertexShader.vs" />
+    <None Include="shaders\GVertexShader.vs" />
+    <None Include="shaders\HDR2CubeFragmentShader.fs" />
+    <None Include="shaders\HDR2CubeVertexShader.vs" />
+    <None Include="shaders\objScreenVertexShader.vs" />
+    <None Include="shaders\PBRFragmentShader.fs" />
+    <None Include="shaders\PBRVertexShader.vs" />
+    <None Include="shaders\specularCubeFragmentShader.fs" />
+    <None Include="shaders\SSAOBlurFragmentShader.fs" />
+    <None Include="shaders\SSAOFregmentShader.fs" />
+    <None Include="shaders\SSAOVertexShader.vs" />
+    <None Include="shaders\specularBRDFFragmentShader.fs" />
   </ItemGroup>
 </Project>
