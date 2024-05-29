@@ -284,8 +284,10 @@ int main(void)
         SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     glDrawBuffer(GL_NONE);
@@ -320,10 +322,6 @@ int main(void)
     glGenTextures(1, &groundTex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, groundTex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     data = stbi_load("../../MyWindow/skybox/ny.png", &width, &height, &nrChannels, 0);
     //data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -736,13 +734,13 @@ int main(void)
     {
         processInput(window);
 
+        glm::vec3 pointLightPos1(3, 1.5, 3);
         glm::mat4 projection;
         glm::mat4 model;
-        glm::mat4 lightView = glm::lookAt(glm::vec3(3, 1, 3), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 lightView = glm::lookAt(pointLightPos1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-        glm::vec3 pointLightPos1(3, 1, 3);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         //GPass
@@ -762,8 +760,8 @@ int main(void)
         model = glm::mat4();
         model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
         GShader.setBool("isPBR", true);
-        GShader.setFloat("metallic", 0.0f);
-        GShader.setFloat("roughness", 0.8f);
+        GShader.setFloat("metallic", 0.3f);
+        GShader.setFloat("roughness", 0.65f);
         GShader.setBool("isPBR", true);
         GShader.setMat4("model", model);
         myModel.Draw(GShader);
@@ -778,7 +776,7 @@ int main(void)
         model = glm::rotate(model, glm::radians(130.0f), glm::vec3(0.0, 1.0, 0.0));
         GShader.setBool("isPBR", true);
         GShader.setFloat("metallic", 1.0f);
-        GShader.setFloat("roughness", 0.5f);
+        GShader.setFloat("roughness", 0.3f);
         GShader.setBool("isPBR", true);
         GShader.setMat4("model", model);
         myModel.Draw(GShader);
@@ -918,6 +916,7 @@ int main(void)
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
         PBRShader.setInt("brdfLUT", 5);
+        PBRShader.setMat4("lightInverseProj", glm::inverse(lightProjection));
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
@@ -944,6 +943,7 @@ int main(void)
         groundShader.setMat4("model", glm::mat4());
         groundShader.setVec3("lightPos", pointLightPos1);
         groundShader.setInt("shadowMap", 6);
+        groundShader.setMat4("lightInverseProj", glm::inverse(lightProjection));
         glBindVertexArray(planeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1084,7 +1084,7 @@ void drawObj(Shader objShader, Camera camera, Model myModel){
     glm::mat4 model;
     glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
     glStencilMask(0xFF); // 启用模板缓冲写入
-    glm::vec3 pointLightPos1(3, 1, 3);
+    glm::vec3 pointLightPos1(3, 1.5, 3);
     objShader.use();
     objShader.setMat4("view", camera.GetViewMatrix());
     projection = glm::mat4();
