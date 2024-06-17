@@ -93,5 +93,6 @@
     <None Include="shaders\SSAOFregmentShader.fs" />
     <None Include="shaders\SSAOVertexShader.vs" />
     <None Include="shaders\specularBRDFFragmentShader.fs" />
+    <None Include="shaders\FXAAFragmentShader.fs" />
   </ItemGroup>
 </Project>

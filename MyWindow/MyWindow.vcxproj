@@ -154,6 +154,7 @@
     <None Include="shaders\borderVertexShader.vs" />
     <None Include="shaders\diffuseCubeFragmentShader.fs" />
     <None Include="shaders\diffuseCubeVertexShader.vs" />
+    <None Include="shaders\FXAAFragmentShader.fs" />
     <None Include="shaders\GFregmentShader.fs" />
     <None Include="shaders\grassFragmentShader.fs" />
     <None Include="shaders\grassVertexShader.vs" />

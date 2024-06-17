@@ -14,15 +14,13 @@
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
 
+bool FXAA = false;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-unsigned int loadCubemap(vector<std::string> faces);
-void drawObj(Shader objShader,Camera camera, Model myModel);
 void drawFbo2Screen(Shader screenShader, Camera camera,unsigned int screenVAO, unsigned int fboColorTexture);
-void drawBorder(Shader borderShader, Camera camera, Model myModel);
-void drawGrass(Shader grassShader, Camera camera, unsigned int grassVAO);
 
 glm::vec3 grassTranslate[] = {
     glm::vec3(0.5f,-0.5,2),glm::vec3(-1,-0.5,2),glm::vec3(0,-0.5,3)
@@ -85,6 +83,7 @@ int main(void)
     Shader diffuseCubeShader("../../MyWindow/shaders/diffuseCubeVertexShader.vs", "../../MyWindow/shaders/diffuseCubeFragmentShader.fs");
     Shader specularLightShader("../../MyWindow/shaders/diffuseCubeVertexShader.vs", "../../MyWindow/shaders/specularCubeFragmentShader.fs");
     Shader specularBRDFShader("../../MyWindow/shaders/screenVertexShader.vs", "../../MyWindow/shaders/specularBRDFFragmentShader.fs");
+    Shader FXAAShader("../../MyWindow/shaders/screenVertexShader.vs", "../../MyWindow/shaders/FXAAFragmentShader.fs");
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
     float vertices[] = {
@@ -217,7 +216,6 @@ int main(void)
         "../../MyWindow/skybox/nz.png",
     };
     glActiveTexture(GL_TEXTURE0);
-    unsigned int skyboxTexture = loadCubemap(faces);
 
     float skyboxVertices[] = {
         // positions          
@@ -734,7 +732,7 @@ int main(void)
     {
         processInput(window);
 
-        glm::vec3 pointLightPos1(3, 1.5, 3);
+        glm::vec3 pointLightPos1(6, 2.5,4.5);
         glm::mat4 projection;
         glm::mat4 model;
         glm::mat4 lightView = glm::lookAt(pointLightPos1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -877,21 +875,6 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        //objShader.use();
-        //glBindVertexArray(screenVAO);
-        //objShader.setInt("shadowMap", 6);
-        //objShader.setInt("gFragColor", 10);
-        //objShader.setInt("gPosition", 11);
-        //objShader.setInt("gNormal", 12);
-        //objShader.setInt("gAlbedoSpec", 13);
-        //objShader.setInt("gFragPosLightSpace", 14);
-        //glActiveTexture(GL_TEXTURE7);
-        //glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
-        //objShader.setInt("texSSAO", 7);
-        //objShader.setMat4("view", camera.GetViewMatrix());
-        //objShader.setVec3("lightPos", pointLightPos1);
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-
         PBRShader.use();
         glBindVertexArray(screenVAO);
         PBRShader.setInt("shadowMap", 6);
@@ -961,7 +944,39 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthFunc(GL_LESS);
 
-        drawGrass(grassShader, camera, grassVAO);
+        //为草排序，渲染草
+        std::map<float, glm::vec3> sorted;
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            float distance = glm::length(camera.Position - grassTranslate[i]);
+            sorted[distance] = grassTranslate[i];
+        }
+        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+            glm::mat4 projection;
+            glm::mat4 model;
+            grassShader.use();
+            grassShader.setMat4("view", camera.GetViewMatrix());
+            projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
+            grassShader.setMat4("projection", projection);
+            model = glm::mat4();
+            model = glm::translate(model, it->second);
+            glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(camera.Direc.x, 0.0f, camera.Direc.z));
+
+            glm::vec3 n = glm::vec3(0, 0, -1);
+            const glm::vec3 half = glm::normalize(cameraDirec_xz + n);
+            const double w = glm::dot(n, half);
+            const glm::vec3 xyz = glm::cross(n, half);
+            const glm::quat p = glm::quat(w, xyz);
+
+            glm::mat4 rotate = glm::mat4_cast(p);
+            model = model * rotate;
+
+            grassShader.setMat4("model", model);
+            glBindVertexArray(grassVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+
+
 
         //----------渲染Pass 描边
 
@@ -992,8 +1007,29 @@ int main(void)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
         glBlitFramebuffer(0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        drawFbo2Screen(screenShader, camera, screenVAO, fboColorTexture);
-        //drawFbo2Screen(screenShader, camera, screenVAO, brdfLUTTexture);
+        //将fbo绘制到输出缓冲
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        if (FXAA) {
+            FXAAShader.use();
+            glBindVertexArray(screenVAO);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+            FXAAShader.setInt("screenTexture", 2);
+        }
+        else {
+            screenShader.use();
+            glBindVertexArray(screenVAO);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+            screenShader.setInt("screenTexture", 2);
+        }
+
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -1025,6 +1061,8 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(DirecEnum::Left, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(DirecEnum::Right,deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        FXAA = !FXAA;
 }
 
 float lastX = screenWidth/2, lastY = screenHeight/2;
@@ -1044,139 +1082,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
-}
-
-unsigned int loadCubemap(vector<std::string> faces)
-{
-    stbi_set_flip_vertically_on_load(false);
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-    int width, height, nrChannels;
-    for (unsigned int i = 0; i < faces.size(); i++)
-    {
-        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-            );
-            stbi_image_free(data);
-        }
-        else
-        {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-            stbi_image_free(data);
-        }
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    return textureID;
-}
-
-void drawObj(Shader objShader, Camera camera, Model myModel){
-    glm::mat4 projection;
-    glm::mat4 model;
-    glStencilFunc(GL_ALWAYS, 1, 0xFF); // 所有的片段都应该更新模板缓冲
-    glStencilMask(0xFF); // 启用模板缓冲写入
-    glm::vec3 pointLightPos1(3, 1.5, 3);
-    objShader.use();
-    objShader.setMat4("view", camera.GetViewMatrix());
-    projection = glm::mat4();
-    projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
-    objShader.setMat4("projection", projection);
-    model = glm::mat4();
-    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-    objShader.setMat4("model", model);
-    objShader.setVec3("lightPos", pointLightPos1);
-    objShader.setInt("shadowMap", 6);
-    glm::mat4 lightView = glm::lookAt(pointLightPos1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-    objShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-    myModel.Draw(objShader);
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
-    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-    objShader.setMat4("model", model);
-    myModel.Draw(objShader);
-}
-
-void drawFbo2Screen(Shader screenShader, Camera camera, unsigned int screenVAO, unsigned int fboColorTexture) {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    screenShader.use();
-    glBindVertexArray(screenVAO);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, fboColorTexture);
-    screenShader.setInt("screenTexture", 2);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
-void drawBorder(Shader borderShader, Camera camera, Model myModel) {
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00); // 禁止模板缓冲的写入
-    glDisable(GL_DEPTH_TEST);
-    borderShader.use();
-
-    glm::mat4 projection;
-    glm::mat4 model;
-    borderShader.setMat4("view", camera.GetViewMatrix());
-    projection = glm::mat4();
-    projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
-    borderShader.setMat4("projection", projection);
-    model = glm::mat4();
-    model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-    borderShader.setMat4("model", model);
-    myModel.Draw(borderShader);
-
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
-    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-    borderShader.setMat4("model", model);
-    myModel.Draw(borderShader);
-
-    glStencilMask(0xFF);
-    glEnable(GL_DEPTH_TEST);
-}
-
-void drawGrass(Shader grassShader, Camera camera, unsigned int grassVAO) {
-    std::map<float, glm::vec3> sorted;
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        float distance = glm::length(camera.Position - grassTranslate[i]);
-        sorted[distance] = grassTranslate[i];
-    }
-    for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        glm::mat4 projection;
-        glm::mat4 model;
-        grassShader.use();
-        grassShader.setMat4("view", camera.GetViewMatrix());
-        projection = glm::perspective(glm::radians(camera.fov), float(screenWidth / screenHeight), 0.1f, 100.0f);
-        grassShader.setMat4("projection", projection);
-        model = glm::mat4();
-        model = glm::translate(model, it->second);
-        glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(camera.Direc.x, 0.0f, camera.Direc.z));
-
-        glm::vec3 n = glm::vec3(0, 0, -1);
-        const glm::vec3 half = glm::normalize(cameraDirec_xz + n);
-        const double w = glm::dot(n, half);
-        const glm::vec3 xyz = glm::cross(n, half);
-        const glm::quat p = glm::quat(w, xyz);
-
-        glm::mat4 rotate = glm::mat4_cast(p);
-        model = model * rotate;
-
-        grassShader.setMat4("model", model);
-        glBindVertexArray(grassVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-    }
 }
