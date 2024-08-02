@@ -17,11 +17,12 @@ public:
 
 	Texture* getTexture(TextureEnum e);
 
+	static Texture* Load2DTexture(const std::string& path);
+	static Texture* CreateEmpty2DTexture();
+
 private:
 	TextureCtrl();
 	~TextureCtrl();
-
-	static Texture* Load2DTexture(const std::string& path);
 
 	std::unordered_map<TextureEnum, Texture*> texEnum2Tex;
 	std::unordered_map<TextureEnum, Texture* (*)()> texEnum2TexLoader;

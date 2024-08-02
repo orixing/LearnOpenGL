@@ -132,14 +132,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="camera\CameraCtrl.cpp" />
     <ClCompile Include="camera\Camera.cpp" />
     <ClCompile Include="gameObj\CowObj.cpp" />
     <ClCompile Include="gameObj\GameObj.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="GPassCtrl.cpp" />
-    <ClCompile Include="InputCtrl.cpp" />
-    <ClCompile Include="shaders\GPassShader.cpp" />
+    <ClCompile Include="RenderCtrl.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="material\Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -152,18 +149,16 @@
     <ClCompile Include="texture\TextureCtrl.cpp" />
     <ClCompile Include="texture\Texture.cpp" />
     <ClCompile Include="texture\_2DTexture.cpp" />
+    <ClCompile Include="WindowContent.cpp" />
     <ClCompile Include="WindowCtrl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera\CameraCtrl.h" />
     <ClInclude Include="camera\Camera.h" />
     <ClInclude Include="gameObj\CowObj.h" />
     <ClInclude Include="gameObj\GameObj.h" />
     <ClInclude Include="GlobalConst.h" />
-    <ClInclude Include="GPassCtrl.h" />
-    <ClInclude Include="InputCtrl.h" />
+    <ClInclude Include="RenderCtrl.h" />
     <ClInclude Include="material\MaterialEnum.h" />
-    <ClInclude Include="shaders\GPassShader.h" />
     <ClInclude Include="material\Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
@@ -174,15 +169,20 @@
     <ClInclude Include="texture\TextureCtrl.h" />
     <ClInclude Include="texture\Texture.h" />
     <ClInclude Include="texture\_2DTexture.h" />
+    <ClInclude Include="WindowContent.h" />
     <ClInclude Include="WindowCtrl.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="rawShaders\boomGeometryShader.gs" />
     <None Include="rawShaders\borderFragmentShader.fs" />
+    <None Include="rawShaders\borderRenderFragmentShader.fs" />
+    <None Include="rawShaders\borderRenderVertexShader.vs" />
     <None Include="rawShaders\borderVertexShader.vs" />
     <None Include="rawShaders\diffuseCubeFragmentShader.fs" />
     <None Include="rawShaders\diffuseCubeVertexShader.vs" />
     <None Include="rawShaders\FXAAFragmentShader.fs" />
+    <None Include="rawShaders\GBorderFragmentShader.fs" />
+    <None Include="rawShaders\GBorderVertexShader.vs" />
     <None Include="rawShaders\GFregmentShader.fs" />
     <None Include="rawShaders\grassFragmentShader.fs" />
     <None Include="rawShaders\grassVertexShader.vs" />

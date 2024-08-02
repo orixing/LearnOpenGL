@@ -1,21 +1,9 @@
 #pragma once
-#include <unordered_map>
+#include <glad/glad.h> 
 #include <GLFW/glfw3.h>
+#include <unordered_map>
 #include "Camera.h"
-
-//一个Window的上下文数据
-class WindowContent {
-public:
-	Camera* mainCamera;
-	bool useFXAA;
-	float mousePosX;
-	float mousePosY;
-	bool firstMouse;
-
-	float curFrameTime;
-	float lastFrameTime;
-	float frameDeltaTime;
-};
+#include "WindowContent.h"
 
 class WindowCtrl
 {
@@ -28,6 +16,16 @@ public:
 	std::unordered_map<GLFWwindow*, WindowContent*> window2Content;
 
 	void Tick();
+
+	static void windowSizecallback(GLFWwindow* window, int width, int height);
+	static void processHotKeyInput(GLFWwindow* window);
+	static void mouseInputCallback(GLFWwindow* window, double xpos, double ypos);
+	static void scrollInputCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+	GLFWwindow* NewWindow();
+
+	static const int ScreenWidth = 800; 
+	static const int ScreenHeight = 600;
 
 private:
 	WindowCtrl();
