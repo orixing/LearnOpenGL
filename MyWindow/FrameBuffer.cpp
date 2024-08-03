@@ -40,8 +40,10 @@ FrameBuffer* FrameBuffer::Builder::Build()
         glDrawBuffers(textures.size(), attachments.data());
     }
 
-    // 之后同样添加渲染缓冲对象(Render Buffer Object)为深度缓冲(Depth Buffer)，并检查完整性
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer->id);
+    if (renderBuffer != nullptr) {
+        // 之后同样添加渲染缓冲对象(Render Buffer Object)为深度缓冲(Depth Buffer)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer->id);
+    }
 
     // - Finally check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {

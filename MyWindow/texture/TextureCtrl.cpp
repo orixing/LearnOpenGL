@@ -53,3 +53,17 @@ Texture* TextureCtrl::CreateEmpty2DTexture(const std::string& name) {
 
     return new Texture(textureMap, name);
 }
+
+Texture* TextureCtrl::Create2DTextureByData(const std::string& name, std::vector<glm::vec4>* data) {
+    unsigned int textureMap;
+    glGenTextures(1, &textureMap);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WindowCtrl::ScreenWidth, WindowCtrl::ScreenHeight, 0, GL_RGBA, GL_FLOAT, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    return new Texture(textureMap, name);
+}

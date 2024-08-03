@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 #include "Texture.h"
+#include <vector>
+#include <glm/glm/glm.hpp>
 enum class TextureEnum {
 	CowAlbedoTex,
 };
@@ -19,7 +21,7 @@ public:
 
 	static Texture* Load2DTexture(const std::string& path);
 	static Texture* CreateEmpty2DTexture(const std::string& name);
-
+	static Texture* Create2DTextureByData(const std::string& name, std::vector<glm::vec4>* data);
 private:
 	TextureCtrl();
 	~TextureCtrl();
