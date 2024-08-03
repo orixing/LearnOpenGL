@@ -3,6 +3,7 @@
 #include "GameObj.h"
 #include <glad/glad.h> 
 #include "WindowContent.h"
+#include "FrameBuffer.h"
 class RenderCtrl
 {
 public:
@@ -15,10 +16,7 @@ public:
     void DoGPass(WindowContent* content);
     void DoGPassBorder(WindowContent* content);
 
-    GLuint gBuffer;
-    GLuint gPositionDepth, gNormal, gAlbedoSpec, gFragPosInLight, gBorder, gExtra;
-    Texture* gFragColor;
-
+    FrameBuffer* GBuffer;
 
     void Render(WindowContent* content);
 

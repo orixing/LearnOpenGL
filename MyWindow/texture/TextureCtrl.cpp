@@ -37,10 +37,10 @@ Texture* TextureCtrl::Load2DTexture(const std::string& path) {
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
-    return new Texture(textureMap);
+    return new Texture(textureMap, path);
 }
 
-Texture* TextureCtrl::CreateEmpty2DTexture() {
+Texture* TextureCtrl::CreateEmpty2DTexture(const std::string& name) {
     unsigned int textureMap;
     glGenTextures(1, &textureMap);
     glActiveTexture(GL_TEXTURE0);
@@ -51,5 +51,5 @@ Texture* TextureCtrl::CreateEmpty2DTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    return new Texture(textureMap);
+    return new Texture(textureMap, name);
 }

@@ -67,6 +67,5 @@ glm::mat4  Camera::GetViewMatrix() {
 	return glm::lookAt(Position, Position + Direc, Up);
 }
 glm::mat4 Camera::GetProjectionMatrix() {
-	std::cout << fov << std::endl;
 	return glm::perspective(glm::radians(fov), float(GlobalConst::ScreenWidth / GlobalConst::ScreenHeight), 0.1f, 100.0f);
 }

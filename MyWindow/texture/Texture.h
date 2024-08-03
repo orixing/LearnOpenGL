@@ -1,9 +1,10 @@
 #pragma once
-
+#include <string>
 class Texture
 {
 public:
 	unsigned int id;
+	std::string name;
 	~Texture();
-	Texture(int id);
+	Texture(unsigned int id, const std::string& name);
 };

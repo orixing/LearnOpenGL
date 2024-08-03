@@ -18,7 +18,7 @@ public:
 	Texture* getTexture(TextureEnum e);
 
 	static Texture* Load2DTexture(const std::string& path);
-	static Texture* CreateEmpty2DTexture();
+	static Texture* CreateEmpty2DTexture(const std::string& name);
 
 private:
 	TextureCtrl();

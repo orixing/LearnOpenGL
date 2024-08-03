@@ -13,52 +13,16 @@ RenderCtrl& RenderCtrl::getInstance() {
 
 // 私有构造函数和析构函数
 RenderCtrl::RenderCtrl() {
-    glGenFramebuffers(1, &gBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
-    // - 没用到
-    gFragColor = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gFragColor->id, 0);
-
-    
-    // - 世界坐标位置
-    gPositionDepth = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gPositionDepth->id, 0);
-
-    // - 法线
-    gNormal = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gNormal->id, 0);
-
-    // - albedo颜色
-    gAlbedoSpec = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gAlbedoSpec->id, 0);
-
-    // 在光源中的位置 将来要删掉
-    gFragPosInLight = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gFragPosInLight->id, 0);
-
-    //是否是边界，搬到extra里
-    gBorder = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gBorder->id, 0);
-
-    //材质信息
-    gExtra = TextureCtrl::CreateEmpty2DTexture();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, gExtra->id, 0);
-
-    // - 告诉OpenGL我们将要使用(帧缓冲的)哪种颜色附件来进行渲染
-    GLuint attachments[7] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3 ,GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 ,GL_COLOR_ATTACHMENT6 };
-    glDrawBuffers(7, attachments);
-
-    // 之后同样添加渲染缓冲对象(Render Buffer Object)为深度缓冲(Depth Buffer)，并检查完整性
-    GLuint rboDepth;
-    glGenRenderbuffers(1, &rboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    // - Finally check if framebuffer is complete
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Gbuffer not complete!" << std::endl;
+    GBuffer = FrameBuffer::Builder()
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gFragColor"))// - 没用到
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gPositionDepth"))// - 世界坐标位置
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gNormal"))// - 法线
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gAlbedoSpec"))//albedo颜色
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gFragPosInLight"))// 在光源中的位置 将来要删掉
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gBorder"))//是否是边界，搬到extra里
+        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gExtra"))//材质信息
+        .CreateRenderbuffer().Build();
 }
 
 RenderCtrl::~RenderCtrl() {
@@ -79,7 +43,7 @@ void RenderCtrl::DoGPass(WindowContent* content) {
     glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, GBuffer->id);
     glViewport(0, 0, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     gPassShader->use();

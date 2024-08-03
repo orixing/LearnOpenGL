@@ -647,9 +647,9 @@ int main(void)
         //glClear(GL_COLOR_BUFFER_BIT);
         SSAOShader.use();
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gPositionDepth);//todo:思考gPositionDepth等一系列GBuffer存放在哪合适
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);//todo:思考gPositionDepth等一系列GBuffer存放在哪合适
         glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gNormal);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
         for (GLuint i = 0; i < 64; ++i) {
@@ -710,19 +710,19 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, depthMap);
 
         glActiveTexture(GL_TEXTURE13);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gAlbedoSpec);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gAlbedoSpec")->id);
          
         glActiveTexture(GL_TEXTURE10);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gFragColor->id);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragColor")->id); 
 
         glActiveTexture(GL_TEXTURE9);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gExtra);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gExtra")->id);
         glActiveTexture(GL_TEXTURE11);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gPositionDepth);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);
         glActiveTexture(GL_TEXTURE12);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gNormal);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
         glActiveTexture(GL_TEXTURE14);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().gFragPosInLight);
+        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragPosInLight")->id);
 
         PBRShader.setInt("shadowMap", 6);
         PBRShader.setInt("gExtra", 9);
@@ -753,7 +753,7 @@ int main(void)
 
         glViewport(0, 0, screenWidth, screenHeight);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().gBuffer);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().GBuffer->id);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo); // 写入到默认帧缓冲
         glBlitFramebuffer(
             0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST
@@ -822,7 +822,7 @@ int main(void)
         //----------渲染Pass 描边
 
         //复制模板缓冲
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().gBuffer);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().GBuffer->id);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
         glBlitFramebuffer(
             0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_STENCIL_BUFFER_BIT, GL_NEAREST

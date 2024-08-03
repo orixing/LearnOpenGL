@@ -1,4 +1,4 @@
 #include "Texture.h"
 
 Texture::~Texture() {}
-Texture::Texture(int id) :id(id) {}
+Texture::Texture(unsigned int id, const std::string& name) :id(id), name(name){}

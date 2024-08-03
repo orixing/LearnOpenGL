@@ -133,6 +133,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera\Camera.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="gameObj\CowObj.cpp" />
     <ClCompile Include="gameObj\GameObj.cpp" />
     <ClCompile Include="glad.c" />
@@ -148,12 +149,12 @@
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="texture\TextureCtrl.cpp" />
     <ClCompile Include="texture\Texture.cpp" />
-    <ClCompile Include="texture\_2DTexture.cpp" />
     <ClCompile Include="WindowContent.cpp" />
     <ClCompile Include="WindowCtrl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="gameObj\CowObj.h" />
     <ClInclude Include="gameObj\GameObj.h" />
     <ClInclude Include="GlobalConst.h" />
@@ -168,7 +169,6 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture\TextureCtrl.h" />
     <ClInclude Include="texture\Texture.h" />
-    <ClInclude Include="texture\_2DTexture.h" />
     <ClInclude Include="WindowContent.h" />
     <ClInclude Include="WindowCtrl.h" />
   </ItemGroup>
