@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="源文件\shader">
+      <UniqueIdentifier>{3b620655-bc4d-45e5-abd7-2b6728a727c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="camera\Camera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gameObj\CowObj.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gameObj\GameObj.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderCtrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="material\Material.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="material\PlasticMaterial.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="material\PBRMetalMaterial.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="shaders\Shader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rawShaders\源.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="texture\TextureCtrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="texture\Texture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowCtrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowContent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stb_image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="camera\Camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gameObj\CowObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gameObj\GameObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalConst.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="material\MaterialEnum.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="material\Material.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="material\PlasticMaterial.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="material\PBRMetalMaterial.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="shaders\Shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="texture\TextureCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="texture\Texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowContent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="rawShaders\boomGeometryShader.gs" />
+    <None Include="rawShaders\borderFragmentShader.fs" />
+    <None Include="rawShaders\borderVertexShader.vs" />
+    <None Include="rawShaders\diffuseCubeFragmentShader.fs" />
+    <None Include="rawShaders\diffuseCubeVertexShader.vs" />
+    <None Include="rawShaders\FXAAFragmentShader.fs" />
+    <None Include="rawShaders\GFregmentShader.fs" />
+    <None Include="rawShaders\grassFragmentShader.fs" />
+    <None Include="rawShaders\grassVertexShader.vs" />
+    <None Include="rawShaders\groundFragmentShader.fs" />
+    <None Include="rawShaders\groundVertexShader.vs" />
+    <None Include="rawShaders\GVertexShader.vs" />
+    <None Include="rawShaders\HDR2CubeFragmentShader.fs" />
+    <None Include="rawShaders\HDR2CubeVertexShader.vs" />
+    <None Include="rawShaders\lightFregmentShader.fs" />
+    <None Include="rawShaders\mirrorCowFragmentShader.fs" />
+    <None Include="rawShaders\mirrorCowVertexShader.vs" />
+    <None Include="rawShaders\objVertexShader.vs" />
+    <None Include="rawShaders\PBRFragmentShader.fs" />
+    <None Include="rawShaders\PBRVertexShader.vs" />
+    <None Include="rawShaders\screenFragmentShader.fs" />
+    <None Include="rawShaders\screenVertexShader.vs" />
+    <None Include="rawShaders\shadowFragmentShader.fs" />
+    <None Include="rawShaders\shadowVertexShader.vs" />
+    <None Include="rawShaders\skyboxFragmentShader.fs" />
+    <None Include="rawShaders\skyboxVertexShader.vs" />
+    <None Include="rawShaders\specularBRDFFragmentShader.fs" />
+    <None Include="rawShaders\specularCubeFragmentShader.fs" />
+    <None Include="rawShaders\SSAOBlurFragmentShader.fs" />
+    <None Include="rawShaders\SSAOFregmentShader.fs" />
+    <None Include="rawShaders\SSAOVertexShader.vs" />
+    <None Include="rawShaders\vertexShader.vs" />
+    <None Include="rawShaders\blinnPhoneFregmentShader.fs" />
+    <None Include="rawShaders\GBorderFragmentShader.fs" />
+    <None Include="rawShaders\GBorderVertexShader.vs" />
+    <None Include="rawShaders\borderRenderFragmentShader.fs" />
+    <None Include="rawShaders\borderRenderVertexShader.vs" />
+  </ItemGroup>
+</Project>

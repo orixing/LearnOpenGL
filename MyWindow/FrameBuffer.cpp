@@ -4,13 +4,11 @@
 #include "GlobalConst.h"
 
 FrameBuffer::~FrameBuffer() {}
-FrameBuffer::FrameBuffer(unsigned int id,std::vector<Texture*>& textures, RenderBuffer* renderBuffer) : id(id), textures(textures), renderBuffer(renderBuffer) {}
-
-FrameBuffer::Builder& FrameBuffer::Builder::BindTexture(Texture* texture) {
-	textures.push_back(texture);
-	return *this;
-
+FrameBuffer::FrameBuffer(unsigned int id, std::vector<Texture*>& colorTextures, Texture* depthTexture) : id(id) {
+    allTextures.insert(allTextures.end(), colorTextures.begin(), colorTextures.end());
+    if (depthTexture != nullptr) allTextures.push_back(depthTexture);
 }
+
 FrameBuffer::Builder& FrameBuffer::Builder::CreateRenderbuffer()
 {
     //创建渲染缓冲组件
@@ -31,13 +29,22 @@ FrameBuffer* FrameBuffer::Builder::Build()
 
     std::vector<unsigned int> attachments;
 
-    for (int i = 0;i < textures.size();i++) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i]->id, 0);
+    for (int i = 0;i < colorTextures.size();i++) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorTextures[i]->id, 0);
         attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
 
     }
-    if (textures.size() > 0) {
-        glDrawBuffers(textures.size(), attachments.data());
+    if (colorTextures.size() > 0) {
+        glDrawBuffers(colorTextures.size(), attachments.data());
+    }
+
+    if (colorTextures.size() == 0 && !needColorTexture) {
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+    }
+
+    if (depthTexture != nullptr) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture->id, 0);
     }
 
     if (renderBuffer != nullptr) {
@@ -52,15 +59,15 @@ FrameBuffer* FrameBuffer::Builder::Build()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    return new FrameBuffer(fbo, textures, renderBuffer);
+    return new FrameBuffer(fbo, colorTextures, depthTexture);
 
 }
 
 Texture* FrameBuffer::GetTexture(const std::string& name) {
-    for (size_t i = 0; i < textures.size(); i++)
+    for (size_t i = 0; i < allTextures.size(); i++)
     {
-        if (textures[i]->name == name) {
-            return textures[i];
+        if (allTextures[i]->name == name) {
+            return allTextures[i];
         }
     }
     return nullptr;

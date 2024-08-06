@@ -233,27 +233,6 @@ int main(void)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    GLuint depthMapFBO;
-    glGenFramebuffers(1, &depthMapFBO);
-    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    GLuint depthMap;
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-        SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
     float planeVertices[] = {
         // positions                 // texcoords
          30.0f, -0.75f,  30.0f,   1.0f,  0.0f,
@@ -541,10 +520,7 @@ int main(void)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     //点光源设置
-    glm::vec3 pointLightPos1(6, 2.5, 4.5);
-    glm::mat4 lightView = glm::lookAt(pointLightPos1, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
 
     //场景内的物体
     //todo:这里先临时直接加载，共享型model需要加载器
@@ -568,6 +544,8 @@ int main(void)
     content->allObjs->push_back(cow2);
     content->allObjs->push_back(cow3);
 
+    content->allLights->push_back(new Light(glm::vec3(6, 2.5, 4.5)));
+
     while (!glfwWindowShouldClose(window))
     {
 
@@ -576,31 +554,6 @@ int main(void)
 
         glm::mat4 projection;
         glm::mat4 model;
-
-        //---------------
-
-        //-----------Shadow Pass
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-
-        shadowShader.use();
-        shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        model = glm::mat4();
-        model = glm::rotate(model, glm::radians(155.0f), glm::vec3(0.0, 1.0, 0.0));
-        shadowShader.setMat4("model", model);
-        myModel.Draw();
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(-1.3, 0.0, -0.5));
-        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0, 1.0, 0.0));
-        shadowShader.setMat4("model", model);
-        myModel.Draw();
-        model = glm::mat4();
-        model = glm::translate(model, glm::vec3(1.1, 0.0, 0.5));
-        model = glm::rotate(model, glm::radians(130.0f), glm::vec3(0.0, 1.0, 0.0));
-        shadowShader.setMat4("model", model);
-        myModel.Draw();
         //-----------
 
         //渲染Pass
@@ -613,7 +566,7 @@ int main(void)
         glBindVertexArray(screenVAO);
 
         glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glBindTexture(GL_TEXTURE_2D, content->allLights->at(0)->depthMapFBO->GetTexture("depthMap")->id);
 
         glActiveTexture(GL_TEXTURE13);
         glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gAlbedoSpec")->id);
@@ -641,7 +594,7 @@ int main(void)
         glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().SSAOBlurFBO->GetTexture("ssaoBlurTex")->id);//todo:临时处理，这里是错误的
         PBRShader.setInt("texSSAO", 7);
         PBRShader.setMat4("view", content->mainCamera->GetViewMatrix());
-        PBRShader.setVec3("lightPos", pointLightPos1);
+        PBRShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
         PBRShader.setVec3("lightColor", glm::vec3(50.0f, 50.0f, 50.0f));
         glActiveTexture(GL_TEXTURE15);
         glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseMap);
@@ -652,7 +605,7 @@ int main(void)
         glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
         PBRShader.setInt("brdfLUT", 5);
-        PBRShader.setMat4("lightInverseProj", glm::inverse(lightProjection));
+        PBRShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
@@ -667,16 +620,16 @@ int main(void)
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
         groundShader.use();
-        groundShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        groundShader.setMat4("lightSpaceMatrix", content->allLights->at(0)->GetLightSpaceMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, groundTex);
         groundShader.setInt("groundTex", 0);
         groundShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
         groundShader.setMat4("view", content->mainCamera->GetViewMatrix());
         groundShader.setMat4("model", glm::mat4());
-        groundShader.setVec3("lightPos", pointLightPos1);
+        groundShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
         groundShader.setInt("shadowMap", 6);
-        groundShader.setMat4("lightInverseProj", glm::inverse(lightProjection));
+        groundShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
         glBindVertexArray(planeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

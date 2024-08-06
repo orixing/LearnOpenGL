@@ -13,13 +13,13 @@ RenderCtrl& RenderCtrl::getInstance() {
 RenderCtrl::RenderCtrl() {
 
     GBuffer = FrameBuffer::Builder()
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gFragColor"))// - 没用到
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gPositionDepth"))// - 世界坐标位置
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gNormal"))// - 法线
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gAlbedoSpec"))//albedo颜色
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gFragPosInLight"))// 在光源中的位置 将来要删掉
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gBorder"))//是否是边界，搬到extra里
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("gExtra"))//材质信息
+        .BindColorTexture(Texture::Builder().SetName("gFragColor").Build())// - 没用到
+        .BindColorTexture(Texture::Builder().SetName("gPositionDepth").Build())// - 世界坐标位置
+        .BindColorTexture(Texture::Builder().SetName("gNormal").Build())// - 法线
+        .BindColorTexture(Texture::Builder().SetName("gAlbedoSpec").Build())//albedo颜色
+        .BindColorTexture(Texture::Builder().SetName("gFragPosInLight").Build())// 在光源中的位置 将来要删掉
+        .BindColorTexture(Texture::Builder().SetName("gBorder").Build())//是否是边界，搬到extra里
+        .BindColorTexture(Texture::Builder().SetName("gExtra").Build())//材质信息
         .CreateRenderbuffer().Build();
 
     //---------------预准备SSAO数据
@@ -41,36 +41,23 @@ RenderCtrl::RenderCtrl() {
         SSAOKernel.push_back(sample);
     }
 
-    std::vector<glm::vec3> ssaoNoise;
+    std::vector<glm::vec4> ssaoNoise;
     for (GLuint i = 0; i < 16; i++)
     {
-        glm::vec3 noise(
+        glm::vec4 noise(
             randomFloats(generator) * 2.0 - 1.0,
             randomFloats(generator) * 2.0 - 1.0,
-            0.0f);
+            0.0f, 0.0f);
         ssaoNoise.push_back(noise);
     }
 
-    //SSAONoiseTex = TextureCtrl::Create2DTextureByData("ssaoNoiseTex", &ssaoNoise);
-
-
-    unsigned int textureMap;
-    glGenTextures(1, &textureMap);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    SSAONoiseTex= new Texture(textureMap, "ssaoNoiseTex");
+    SSAONoiseTex = Texture::Builder().SetHeight(4).SetWidth(4).SetWrapS(GL_REPEAT).SetWrapT(GL_REPEAT).SetName("ssaoNoiseTex").SetData(&ssaoNoise[0]).Build();
 
     SSAOFBO = FrameBuffer::Builder()
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("ssaoTex")).Build();
+        .BindColorTexture(Texture::Builder().SetName("ssaoTex").Build()).Build();
 
     SSAOBlurFBO = FrameBuffer::Builder()
-        .BindTexture(TextureCtrl::CreateEmpty2DTexture("ssaoBlurTex")).Build();
+        .BindColorTexture(Texture::Builder().SetName("ssaoBlurTex").Build()).Build();
 
     //todo:Screen的VAO，看看怎么初始化合适
     float screenVertices[] = {
@@ -82,7 +69,6 @@ RenderCtrl::RenderCtrl() {
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
-
     glGenVertexArrays(1, &screenVAO);
     unsigned int screenVBO;
     glGenBuffers(1, &screenVBO);
@@ -103,8 +89,11 @@ void RenderCtrl::Render(WindowContent* content) {
     RenderCtrl::getInstance().DoGPass(content);
     //--------Gpass 描边
     RenderCtrl::getInstance().DoGBorderPass(content);
+    //SSAOFBO
     RenderCtrl::getInstance().DoSSAOPass(content);
     RenderCtrl::getInstance().DoSSAOBlurPass(content);
+    //shadow map
+    RenderCtrl::getInstance().DoShadowPass(content);
 }
 
 void RenderCtrl::DoGPass(WindowContent* content) {
@@ -154,10 +143,9 @@ void RenderCtrl::DoSSAOPass(WindowContent* content) {
     glBindFramebuffer(GL_FRAMEBUFFER, SSAOFBO->id);
     glBindVertexArray(screenVAO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    //glClear(GL_COLOR_BUFFER_BIT);
     SSAOShader->use();
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);//todo:思考gPositionDepth等一系列GBuffer存放在哪合适
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
     glActiveTexture(GL_TEXTURE5);
@@ -182,4 +170,18 @@ void RenderCtrl::DoSSAOBlurPass(WindowContent* content) {
     glBindTexture(GL_TEXTURE_2D, SSAOFBO->GetTexture("ssaoTex")->id);
     SSAOBlurShader->setInt("ssaoInput", 3);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void RenderCtrl::DoShadowPass(WindowContent* content) {
+
+    for (Light* light : *content->allLights) {
+        glBindFramebuffer(GL_FRAMEBUFFER, light->depthMapFBO->id);
+        glViewport(0, 0, Light::ShadowMapWidth, Light::ShadowMapHeight);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        shadowShader->use();
+        shadowShader->setMat4("lightSpaceMatrix", light->GetLightSpaceMatrix());
+        for (GameObj* oneObj : *content->allObjs) {
+            oneObj->DrawInShadowPass(shadowShader);
+        }
+    }
 }

@@ -18,6 +18,7 @@ public:
 
 	virtual void Draw();
 	virtual void DrawInGPass(Shader* shader);
+	virtual void DrawInShadowPass(Shader* shader);
 
 	//ªÒ»°Model±‰ªªæÿ’Û
 	glm::mat4 getModelMatrix();

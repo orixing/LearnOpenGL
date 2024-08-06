@@ -1,5 +1,5 @@
 #pragma once
-#include "Texture.h";
+#include "Texture.h"
 #include <vector>
 
 class RenderBuffer
@@ -19,20 +19,34 @@ public:
 
 	class Builder {
 	public:
-		Builder& BindTexture(Texture* texture);
+		inline Builder& BindColorTexture(Texture* texture) {
+			colorTextures.push_back(texture);
+			return *this;
+		}
+
+		inline Builder& BindDepthTexture(Texture* texture) {
+			depthTexture = texture;
+			return *this;
+		}
+
+		inline Builder& NeedColorTexture(bool needColorTexture) {
+			this->needColorTexture = needColorTexture;
+			return *this;
+		}
 		Builder& CreateRenderbuffer();
 
 		FrameBuffer* Build();
 	private:
-		std::vector<Texture*> textures;//所有待绑定的颜色附件
+		std::vector<Texture*> colorTextures;//所有待绑定的颜色附件
+		Texture* depthTexture;
+		bool needColorTexture = true;
 		RenderBuffer* renderBuffer;//待绑定的渲染缓冲附件
 	};
 
 
 private:
-	std::vector<Texture*> textures;//所有的颜色附件
-	RenderBuffer* renderBuffer;//渲染缓冲附件
+	std::vector<Texture*> allTextures;//所有的颜色附件
 
 	~FrameBuffer();
-	FrameBuffer(unsigned int id,std::vector<Texture*>& textures,RenderBuffer* renderBuffer);
+	FrameBuffer(unsigned int id,std::vector<Texture*>& colorTextures, Texture* depthTexture);
 };

@@ -137,6 +137,7 @@
     <ClCompile Include="gameObj\CowObj.cpp" />
     <ClCompile Include="gameObj\GameObj.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="RenderCtrl.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="material\Material.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="gameObj\CowObj.h" />
     <ClInclude Include="gameObj\GameObj.h" />
     <ClInclude Include="GlobalConst.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="RenderCtrl.h" />
     <ClInclude Include="material\MaterialEnum.h" />
     <ClInclude Include="material\Material.h" />

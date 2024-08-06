@@ -1,7 +1,5 @@
 #include "Model.h"
 
-unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
-
 void Model::Draw()
 {
     for (unsigned int i = 0; i < meshes.size(); i++)

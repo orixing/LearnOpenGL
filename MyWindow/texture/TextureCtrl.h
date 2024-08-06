@@ -18,10 +18,6 @@ public:
 	TextureCtrl& operator=(const TextureCtrl&) = delete;
 
 	Texture* getTexture(TextureEnum e);
-
-	static Texture* Load2DTexture(const std::string& path);
-	static Texture* CreateEmpty2DTexture(const std::string& name);
-	static Texture* Create2DTextureByData(const std::string& name, std::vector<glm::vec4>* data);
 private:
 	TextureCtrl();
 	~TextureCtrl();

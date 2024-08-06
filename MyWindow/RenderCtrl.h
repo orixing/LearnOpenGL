@@ -17,6 +17,7 @@ public:
     void DoGBorderPass(WindowContent* content);
     void DoSSAOPass(WindowContent* content);
     void DoSSAOBlurPass(WindowContent* content);
+    void DoShadowPass(WindowContent* content);
 
     std::vector<glm::vec3> SSAOKernel;
     Texture* SSAONoiseTex;
@@ -31,6 +32,7 @@ private:
     Shader* gBorderShader = new Shader("../../MyWindow/rawShaders/GBorderVertexShader.vs", "../../MyWindow/rawShaders/GBorderFragmentShader.fs");
     Shader* SSAOShader = new Shader("../../MyWindow/rawShaders/SSAOVertexShader.vs", "../../MyWindow/rawShaders/SSAOFregmentShader.fs");
     Shader* SSAOBlurShader = new Shader("../../MyWindow/rawShaders/SSAOVertexShader.vs", "../../MyWindow/rawShaders/SSAOBlurFragmentShader.fs");
+    Shader* shadowShader = new Shader("../../MyWindow/rawShaders/shadowVertexShader.vs", "../../MyWindow/rawShaders/shadowFragmentShader.fs");
     // 私有构造函数和析构函数
     RenderCtrl();
     ~RenderCtrl();

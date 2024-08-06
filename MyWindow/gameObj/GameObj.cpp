@@ -14,6 +14,11 @@ void GameObj::DrawInGPass(Shader* shader) {
 	model->Draw();
 }
 
+void GameObj::DrawInShadowPass(Shader* shader) {
+	shader->setMat4("model", getModelMatrix());
+	model->Draw();
+}
+
 glm::mat4 GameObj::getModelMatrix() {
 	glm::mat4 model;
 	model = glm::translate(model, position);

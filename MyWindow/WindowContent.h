@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include <vector>
 #include "GameObj.h"
+#include "Light.h"
 //一个Window的上下文数据
 class WindowContent {
 public:
@@ -16,6 +17,7 @@ public:
 	float frameDeltaTime;
 
 	std::vector<GameObj*> *allObjs;
+	std::vector<Light*>* allLights;
 
 	WindowContent(Camera* c);
 	~WindowContent();
