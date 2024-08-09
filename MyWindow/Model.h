@@ -19,11 +19,14 @@ public:
     {
         loadModel(path);
     }
+    Model(Mesh* mesh) {
+        meshes.push_back(*mesh);
+    }
+
     void Draw();
 private:
     /*  模型数据  */
     vector<Mesh> meshes;
-    string directory;
     /*  函数   */
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);

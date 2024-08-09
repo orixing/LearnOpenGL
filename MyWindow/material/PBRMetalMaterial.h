@@ -7,6 +7,7 @@ public:
 	~PBRMetalMaterial() override;
 	void DrawInGPass(Shader* shader) override;
 
+	Texture* albedoTex;
 	float metallic;
 	float roughness;
 };

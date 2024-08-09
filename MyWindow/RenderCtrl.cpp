@@ -12,52 +12,20 @@ RenderCtrl& RenderCtrl::getInstance() {
 // 私有构造函数和析构函数
 RenderCtrl::RenderCtrl() {
 
-    GBuffer = FrameBuffer::Builder()
-        .BindColorTexture(Texture::Builder().SetName("gFragColor").Build())// - 没用到
-        .BindColorTexture(Texture::Builder().SetName("gPositionDepth").Build())// - 世界坐标位置
-        .BindColorTexture(Texture::Builder().SetName("gNormal").Build())// - 法线
-        .BindColorTexture(Texture::Builder().SetName("gAlbedoSpec").Build())//albedo颜色
-        .BindColorTexture(Texture::Builder().SetName("gFragPosInLight").Build())// 在光源中的位置 将来要删掉
-        .BindColorTexture(Texture::Builder().SetName("gBorder").Build())//是否是边界，搬到extra里
-        .BindColorTexture(Texture::Builder().SetName("gExtra").Build())//材质信息
-        .CreateRenderbuffer().Build();
+    GBuffer = new FrameBuffer();
+
+    GBuffer->BindTexture(Texture::Builder().SetName("gFragColor").Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);// - 没用到
+    GBuffer->BindTexture(Texture::Builder().SetName("gPositionDepth").Build(), GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);// - 世界坐标位置
+    GBuffer->BindTexture(Texture::Builder().SetName("gNormal").Build(), GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D);// - 法线
+    GBuffer->BindTexture(Texture::Builder().SetName("gAlbedoSpec").Build(), GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D);//albedo颜色
+    GBuffer->BindTexture(Texture::Builder().SetName("gFragPosInLight").Build(), GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D);// 在光源中的位置 将来要删掉
+    GBuffer->BindTexture(Texture::Builder().SetName("gBorder").Build(), GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D);//是否是边界，搬到extra里
+    GBuffer->BindTexture(Texture::Builder().SetName("gExtra").Build(), GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D);//材质信息
+    GBuffer->AddRenderbuffer(GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
+    GBuffer->SetDrawBuffers({ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6 });
 
     //---------------预准备SSAO数据
-    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // 随机浮点数，范围0.0 - 1.0
-    std::default_random_engine generator;
-
-    for (GLuint i = 0; i < 64; ++i)
-    {
-        glm::vec3 sample(
-            randomFloats(generator) * 2.0 - 1.0,
-            randomFloats(generator) * 2.0 - 1.0,
-            randomFloats(generator)
-        );
-        sample = glm::normalize(sample);
-        sample *= randomFloats(generator);
-        GLfloat scale = GLfloat(i) / 64.0;
-        scale = 0.1 + 0.9 * scale * scale;
-        sample *= scale;
-        SSAOKernel.push_back(sample);
-    }
-
-    std::vector<glm::vec4> ssaoNoise;
-    for (GLuint i = 0; i < 16; i++)
-    {
-        glm::vec4 noise(
-            randomFloats(generator) * 2.0 - 1.0,
-            randomFloats(generator) * 2.0 - 1.0,
-            0.0f, 0.0f);
-        ssaoNoise.push_back(noise);
-    }
-
-    SSAONoiseTex = Texture::Builder().SetHeight(4).SetWidth(4).SetWrapS(GL_REPEAT).SetWrapT(GL_REPEAT).SetName("ssaoNoiseTex").SetData(&ssaoNoise[0]).Build();
-
-    SSAOFBO = FrameBuffer::Builder()
-        .BindColorTexture(Texture::Builder().SetName("ssaoTex").Build()).Build();
-
-    SSAOBlurFBO = FrameBuffer::Builder()
-        .BindColorTexture(Texture::Builder().SetName("ssaoBlurTex").Build()).Build();
+    PrepareSSAOData();
 
     //todo:Screen的VAO，看看怎么初始化合适
     float screenVertices[] = {
@@ -94,6 +62,8 @@ void RenderCtrl::Render(WindowContent* content) {
     RenderCtrl::getInstance().DoSSAOBlurPass(content);
     //shadow map
     RenderCtrl::getInstance().DoShadowPass(content);
+    //PBR PASS
+    //延迟渲染全部为PBR材质，只需要一个PASS
 }
 
 void RenderCtrl::DoGPass(WindowContent* content) {
@@ -149,7 +119,7 @@ void RenderCtrl::DoSSAOPass(WindowContent* content) {
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
     glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, SSAONoiseTex->id);
+    glBindTexture(GL_TEXTURE_2D, TextureCtrl::getInstance().getTexture(TextureEnum::SSAONoiseTex)->id);
     for (GLuint i = 0; i < 64; ++i) {
         SSAOShader->setVec3(("samples[" + std::to_string(i) + "]").c_str(), SSAOKernel[i]);
     }
@@ -184,4 +154,89 @@ void RenderCtrl::DoShadowPass(WindowContent* content) {
             oneObj->DrawInShadowPass(shadowShader);
         }
     }
+}
+
+void RenderCtrl::DoPBRRenderPass(WindowContent* content) {
+    //渲染Pass
+    //glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    //glViewport(0, 0, screenWidth, screenHeight);
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    //PBRShader.use();
+    //glBindVertexArray(screenVAO);
+
+    //glActiveTexture(GL_TEXTURE6);
+    //glBindTexture(GL_TEXTURE_2D, content->allLights->at(0)->depthMapFBO->GetTexture("depthMap")->id);
+
+    //glActiveTexture(GL_TEXTURE13);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gAlbedoSpec")->id);
+
+    //glActiveTexture(GL_TEXTURE10);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragColor")->id);
+
+    //glActiveTexture(GL_TEXTURE9);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gExtra")->id);
+    //glActiveTexture(GL_TEXTURE11);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);
+    //glActiveTexture(GL_TEXTURE12);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
+    //glActiveTexture(GL_TEXTURE14);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragPosInLight")->id);
+
+    //PBRShader.setInt("shadowMap", 6);
+    //PBRShader.setInt("gExtra", 9);
+    ////PBRShader.setInt("gFragColor", 10);
+    //PBRShader.setInt("gPosition", 11);
+    //PBRShader.setInt("gNormal", 12);
+    //PBRShader.setInt("gAlbedo", 13);
+    //PBRShader.setInt("gFragPosLightSpace", 14);
+    //glActiveTexture(GL_TEXTURE7);
+    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().SSAOBlurFBO->GetTexture("ssaoBlurTex")->id);//todo:临时处理，这里是错误的
+    //PBRShader.setInt("texSSAO", 7);
+    //PBRShader.setMat4("view", content->mainCamera->GetViewMatrix());
+    //PBRShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
+    //PBRShader.setVec3("lightColor", glm::vec3(50.0f, 50.0f, 50.0f));
+    //glActiveTexture(GL_TEXTURE15);
+    //glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLDiffuseLightTex->id);
+    //PBRShader.setInt("irradianceMap", 15);
+    //glActiveTexture(GL_TEXTURE4);
+    //glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLSpecularLightTex->id);
+    //PBRShader.setInt("prefilterMap", 4);
+    //glActiveTexture(GL_TEXTURE5);
+    //glBindTexture(GL_TEXTURE_2D, content->skyboxObj->material->IBLSpecularBRDFTex->id);
+    //PBRShader.setInt("brdfLUT", 5);
+    //PBRShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
+    //glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+}
+
+
+void RenderCtrl::PrepareSSAOData() {
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // 随机浮点数，范围0.0 - 1.0
+    std::default_random_engine generator;
+
+    for (GLuint i = 0; i < 64; ++i)
+    {
+        glm::vec3 sample(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator)
+        );
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+        GLfloat scale = GLfloat(i) / 64.0;
+        scale = 0.1 + 0.9 * scale * scale;
+        sample *= scale;
+        SSAOKernel.push_back(sample);
+    }
+
+    TextureCtrl::getInstance().getTexture(TextureEnum::SSAONoiseTex);
+
+    SSAOFBO = new FrameBuffer();
+    SSAOFBO->BindTexture(Texture::Builder().SetName("ssaoTex").Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+
+    SSAOBlurFBO = new FrameBuffer();
+    SSAOBlurFBO->BindTexture(Texture::Builder().SetName("ssaoBlurTex").Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
 }

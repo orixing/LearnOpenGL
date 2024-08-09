@@ -11,9 +11,8 @@ public:
 	float roll;  // ÈÆZÖáÐý×ª
 
 	Model* model;
-	Material* material;
 
-	GameObj(Model* model, Material*material);
+	GameObj(Model* model);
 	virtual ~GameObj() = 0;
 
 	virtual void Draw();

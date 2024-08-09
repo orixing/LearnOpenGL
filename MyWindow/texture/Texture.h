@@ -15,6 +15,8 @@ public:
 	class Builder {
 	public:
 		Builder& LoadFromFile(const std::string& path);
+		Builder& LoadFromHDRFile(const std::string& path);
+
 		inline Builder& SetTarget(GLenum target) {
 			this->target = target;
 			return *this;
@@ -88,6 +90,7 @@ public:
 		GLint magFilter = GL_NEAREST;
 		GLint wrapS = GL_CLAMP_TO_EDGE;
 		GLint wrapT = GL_CLAMP_TO_EDGE;
+		GLint wrapR = GL_CLAMP_TO_EDGE;
 		bool needMipMap = false;
 		std::string name;
 		std::vector<std::function<void()>> afterBuild;

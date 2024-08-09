@@ -7,6 +7,8 @@
 #include <glm/glm/glm.hpp>
 enum class TextureEnum {
 	CowAlbedoTex,
+	SkyboxTex_AutumnPark,
+	SSAONoiseTex,
 };
 
 class TextureCtrl

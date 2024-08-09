@@ -19,8 +19,11 @@ public:
     void DoSSAOBlurPass(WindowContent* content);
     void DoShadowPass(WindowContent* content);
 
+    void DoPBRRenderPass(WindowContent* content);
+
+    void PrepareSSAOData();
+
     std::vector<glm::vec3> SSAOKernel;
-    Texture* SSAONoiseTex;
     FrameBuffer* GBuffer, * SSAOFBO, * SSAOBlurFBO;
 
     unsigned int screenVAO;

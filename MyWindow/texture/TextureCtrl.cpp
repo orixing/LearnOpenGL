@@ -2,6 +2,9 @@
 #include <glad/glad.h> 
 #include "stb_image.h"
 #include "WindowCtrl.h"
+#include <random> 
+
+static Texture* LoadSSAONoiseTex();
 
 TextureCtrl& TextureCtrl::getInstance() {
 	static TextureCtrl instance;
@@ -11,6 +14,8 @@ TextureCtrl& TextureCtrl::getInstance() {
 // ::Load2DTexture("../../MyWindow/spot/spot_texture.png");
 TextureCtrl::TextureCtrl(){
     texEnum2TexLoader[TextureEnum::CowAlbedoTex] = []() {return Texture::Builder().LoadFromFile("../../MyWindow/spot/spot_texture.png").SetMipMap(true).SetName("CowAlbedoTex").Build(); };
+	texEnum2TexLoader[TextureEnum::SkyboxTex_AutumnPark] = []() {return Texture::Builder().LoadFromHDRFile("../../MyWindow/skybox/autumn_park_16k.hdr").SetName("SkyboxTex").Build(); };
+	texEnum2TexLoader[TextureEnum::SSAONoiseTex] = LoadSSAONoiseTex;
 }
 TextureCtrl::~TextureCtrl() {}
 
@@ -22,4 +27,17 @@ Texture* TextureCtrl::getTexture(TextureEnum e) {
 	return texEnum2Tex[e];
 }
 
-
+Texture* LoadSSAONoiseTex() {
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // Ëæ»ú¸¡µãÊý£¬·¶Î§0.0 - 1.0
+    std::default_random_engine generator;
+    std::vector<glm::vec4> ssaoNoise;
+    for (GLuint i = 0; i < 16; i++)
+    {
+        glm::vec4 noise(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            0.0f, 0.0f);
+        ssaoNoise.push_back(noise);
+    }
+    return Texture::Builder().SetHeight(4).SetWidth(4).SetWrapS(GL_REPEAT).SetWrapT(GL_REPEAT).SetName("ssaoNoiseTex").SetData(&ssaoNoise[0]).Build();
+}

@@ -12,10 +12,13 @@ using std::vector;
 #include <assimp/postprocess.h>
 
 
-struct Vertex {
+class Vertex {
+public:
     glm::vec3 Position;
     glm::vec3 Normal;
     glm::vec2 TexCoords;
+
+    static vector<Vertex> genVertexByRawData(vector<float>& vertexData);
 };
 
 class Mesh {

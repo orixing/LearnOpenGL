@@ -36,9 +36,6 @@
     <ClCompile Include="Model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gameObj\CowObj.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="gameObj\GameObj.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -78,6 +75,15 @@
     <ClCompile Include="Light.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gameObj\CommonObj.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gameObj\SkyboxObj.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="material\SkyboxMaterial.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -90,9 +96,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gameObj\CowObj.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gameObj\GameObj.h">
@@ -135,6 +138,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gameObj\CommonObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gameObj\SkyboxObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="material\SkyboxMaterial.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

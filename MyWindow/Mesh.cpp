@@ -1,5 +1,4 @@
 #include "Mesh.h"
-
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
 {
     this->vertices = vertices;
@@ -39,11 +38,22 @@ void Mesh::setupMesh()
 
 void Mesh::Draw()
 {
-
-    glActiveTexture(GL_TEXTURE0);
-
     // »æÖÆÍø¸ñ
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+
+vector<Vertex> Vertex::genVertexByRawData(vector<float>& vertexData) {
+    vector<Vertex> ret;
+    for (int i = 0; i < vertexData.size(); i=i+8)
+    {
+        Vertex v;
+        v.Position = glm::vec3(vertexData[i], vertexData[i + 1], vertexData[i + 2]);
+        v.Normal = glm::vec3(vertexData[i + 3], vertexData[i + 4], vertexData[i + 5]);
+        v.TexCoords = glm::vec2(vertexData[i + 6], vertexData[i + 7]);
+        ret.push_back(v);
+    }
+    return ret;
 }
