@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include "stb_image.h"
 #include "TextureCtrl.h"
+#include "TransparentMaterial.h"
 #include "WindowCtrl.h"
 #include "SkyboxMaterial.h"
 #include <glad/glad.h> 
@@ -20,10 +21,6 @@
 #include <random> 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
-
-glm::vec3 grassTranslate[] = {
-    glm::vec3(0.5f,-0.5,2),glm::vec3(-1,-0.5,2),glm::vec3(0,-0.5,3)
-};
 
 int main(void)
 {
@@ -39,16 +36,9 @@ int main(void)
 
     stbi_set_flip_vertically_on_load(true);
 
-    Shader lightShader("../../MyWindow/rawShaders/vertexShader.vs", "../../MyWindow/rawShaders/lightFregmentShader.fs");
-    Shader objShader("../../MyWindow/rawShaders/objVertexShader.vs","../../MyWindow/rawShaders/blinnPhoneFregmentShader.fs");
-    Shader borderRenderShader("../../MyWindow/rawShaders/borderRenderVertexShader.vs", "../../MyWindow/rawShaders/borderRenderFragmentShader.fs");
-    Shader borderShader("../../MyWindow/rawShaders/borderVertexShader.vs", "../../MyWindow/rawShaders/borderFragmentShader.fs");
     Shader grassShader("../../MyWindow/rawShaders/grassVertexShader.vs", "../../MyWindow/rawShaders/grassFragmentShader.fs");
     Shader screenShader("../../MyWindow/rawShaders/screenVertexShader.vs", "../../MyWindow/rawShaders/screenFragmentShader.fs");
-    Shader skyboxShader("../../MyWindow/rawShaders/skyboxVertexShader.vs", "../../MyWindow/rawShaders/skyboxFragmentShader.fs");
-    Shader mirrorCowShader("../../MyWindow/rawShaders/mirrorCowVertexShader.vs", "../../MyWindow/rawShaders/mirrorCowFragmentShader.fs");
     Shader shadowShader("../../MyWindow/rawShaders/shadowVertexShader.vs", "../../MyWindow/rawShaders/shadowFragmentShader.fs");
-    Shader groundShader("../../MyWindow/rawShaders/groundVertexShader.vs", "../../MyWindow/rawShaders/groundFragmentShader.fs");
     Shader FXAAShader("../../MyWindow/rawShaders/screenVertexShader.vs", "../../MyWindow/rawShaders/FXAAFragmentShader.fs");
 
     float screenVertices[] = {
@@ -73,116 +63,28 @@ int main(void)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    float grassVertices[] = {
-        -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
-
-        -0.5f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 1.0f, 0.0f, 1.0f, 1.0f,
-    };
-    int width, height, nrChannels;
-    unsigned char* data;
-
-    unsigned int grassVAO;
-    glGenVertexArrays(1, &grassVAO);
-    unsigned int grassVBO;
-    glGenBuffers(1, &grassVBO);
-    glBindVertexArray(grassVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    unsigned int grassTexture;
-    glGenTextures(1, &grassTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, grassTexture);
-    data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(data);
-
-    grassShader.use();
-    grassShader.setInt("grassTex", 1);
-
+    //透明物体渲染的设置
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
- 
-    vector<std::string> faces
-    {
-        "../../MyWindow/skybox/px.png",
-        "../../MyWindow/skybox/nx.png",
-        "../../MyWindow/skybox/py.png",
-        "../../MyWindow/skybox/ny.png",
-        "../../MyWindow/skybox/pz.png",
-        "../../MyWindow/skybox/nz.png",
-    };
-    glActiveTexture(GL_TEXTURE0);
-
-    //float planeVertices[] = {
-    //    // positions                 // texcoords
-    //     30.0f, -0.75f,  30.0f,   1.0f,  0.0f,
-    //    -30.0f, -0.75f,  30.0f,     0.0f,  0.0f,
-    //    -30.0f, -0.75f, -30.0f,     0.0f, 1.0f,
-    //                      
-    //     30.0f, -0.75f,  30.0f,  1.0f,  0.0f,
-    //    -30.0f, -0.75f, -30.0f,     0.0f, 1.0f,
-    //     30.0f, -0.75f, -30.0f,    1.0f, 1.0f
-
-    //};
-    //unsigned int planeVAO;
-    //glGenVertexArrays(1, &planeVAO);
-    //unsigned int planeVBO;
-    //glGenBuffers(1, &planeVBO);
-    //glBindVertexArray(planeVAO);
-    //glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    //glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    //glEnableVertexAttribArray(1);
-
-    //unsigned int groundTex;
-    //glGenTextures(1, &groundTex);
-    //glActiveTexture(GL_TEXTURE0);
-    //glBindTexture(GL_TEXTURE_2D, groundTex);
-    //data = stbi_load("../../MyWindow/skybox/ny.png", &width, &height, &nrChannels, 0);
-    ////data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    //glGenerateMipmap(GL_TEXTURE_2D);
-    //stbi_image_free(data);
-    
-    vector<float> planeVertices = {
-        30.0f, -0.75f, 30.0f, 0.0f, 1.0f, 0.0f, 10.0f,  0.0f,
-        -30.0f, -0.75f, 30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -30.0f, -0.75f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 10.0f,
-        30.0f, -0.75f, -30.0f, 0.0f, 1.0f, 0.0f, 10.0f, 10.0f
-    };
-    vector<unsigned int> indices = {
-        0,1,2,
-        0,2,3
-    };
+  
     //todo:可能改成用工厂创建对象
     WindowContent* content = WindowCtrl::getInstance().window2Content[window];
 
     //添加地板
     //构造mesh
-    Mesh* groundMesh = new Mesh(Vertex::genVertexByRawData(planeVertices), indices);
-    //构造model
+    vector<float> planeVertices = {
+    30.0f, -0.75f, 30.0f, 0.0f, 1.0f, 0.0f, 10.0f,  0.0f,
+    -30.0f, -0.75f, 30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+    -30.0f, -0.75f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 10.0f,
+    30.0f, -0.75f, -30.0f, 0.0f, 1.0f, 0.0f, 10.0f, 10.0f
+    };
+    vector<unsigned int> groundIndices = { 0,1,2, 0,2,3 };
+    Mesh* groundMesh = new Mesh(Vertex::genVertexByRawData(planeVertices), groundIndices);
     Model* groundModel = new Model(groundMesh);
-
     PBRMetalMaterial* groundMaterial = new PBRMetalMaterial();
     groundMaterial->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::GroundTex);
-    groundMaterial->metallic = 0.0f;
+    groundMaterial->metallic = 1.0f;
     groundMaterial->roughness = 1.0f;
-    /*PlasticMaterial* groundMaterial = new PlasticMaterial();
-    groundMaterial->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::GroundTex);*/
     CommonObj* ground = new CommonObj(groundModel, groundMaterial);
     content->allObjs->push_back(ground);
 
@@ -224,10 +126,38 @@ int main(void)
     content->skyboxObj->material->SetTexture(TextureEnum::SkyboxTex_AutumnPark);
     content->skyboxObj->PrecomputeIBL();
 
-
+    //多光源
     content->allLights->push_back(new Light(glm::vec3(6, 2.5, 4.5)));
     //content->allLights->push_back(new Light(glm::vec3(4.5, 2.5, 6)));
 
+
+    //透明草，静态草直接共用一个model和材质就行
+    vector<float> grassVertices = {
+        -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+        0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+    };
+    vector<unsigned int> grassIndices = { 0,1,2,2,1,3 };
+
+    Mesh* grassMesh = new Mesh(Vertex::genVertexByRawData(grassVertices), grassIndices);
+    Model* grassModel = new Model(grassMesh);
+    TransparentMaterial* grassMaterial = new TransparentMaterial();
+    grassMaterial->texture = TextureCtrl::getInstance().getTexture(TextureEnum::GrassTex);
+    CommonObj* grass1 = new CommonObj(grassModel, grassMaterial);
+    grass1->transparent = true;
+    grass1->position = glm::vec3(0.5f, -0.5, 2);
+    content->allObjs->push_back(grass1);
+
+    CommonObj* grass2 = new CommonObj(grassModel, grassMaterial);
+    grass2->transparent = true;
+    grass2->position = glm::vec3(-1, -0.5, 2);
+    content->allObjs->push_back(grass2);
+
+    CommonObj* grass3 = new CommonObj(grassModel, grassMaterial);
+    grass3->transparent = true;
+    grass3->position = glm::vec3(0, -0.5, 3);
+    content->allObjs->push_back(grass3);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -235,69 +165,29 @@ int main(void)
 
         WindowCtrl::getInstance().Tick();
 
-        glm::mat4 projection;
-        glm::mat4 model;
-        //-----------
+        grassShader.use();
+        grassShader.setInt("grassTex", 0);
+        grassShader.setMat4("view", content->mainCamera->GetViewMatrix());
+        grassShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
 
-        
-        //将Gbuffer深度缓冲复制到fbo
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().GBuffer->id);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id); // 写入到默认帧缓冲
-        glBlitFramebuffer(
-            0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST
-        );
-        glBindFramebuffer(GL_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id);
-
-        //groundShader.use();
-        //groundShader.setMat4("lightSpaceMatrix", content->allLights->at(0)->GetLightSpaceMatrix());
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, groundObj->material->texture->id);
-        //groundShader.setInt("groundTex", 0);
-        //groundShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
-        //groundShader.setMat4("view", content->mainCamera->GetViewMatrix());
-        //groundShader.setMat4("model", glm::mat4());
-        //groundShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
-        //glActiveTexture(GL_TEXTURE8);
-        //glBindTexture(GL_TEXTURE_2D, content->allLights->at(0)->depthMapFBO->GetTexture("depthMap")->id);
-        //groundShader.setInt("shadowMap", 8);
-        //groundShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
-        //groundObj->Draw();
-
-
-        glDepthFunc(GL_LEQUAL);
-        skyboxShader.use();
-        glActiveTexture(GL_TEXTURE1);
-
-        glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->cubeMapCache->id);
-
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, specularLightMap);
-        skyboxShader.setInt("skybox", 1);
-
-        skyboxShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
-        skyboxShader.setMat4("view", glm::mat4(glm::mat3(content->mainCamera->GetViewMatrix())));
-        content->skyboxObj->Draw();
-        glDepthFunc(GL_LESS);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, grassTexture);
-
-        //为草排序，渲染草
-        std::map<float, glm::vec3> sorted;
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            float distance = glm::length(content->mainCamera->Position - grassTranslate[i]);
-            sorted[distance] = grassTranslate[i];
+        //为透明物体排序，渲染草
+        std::map<float, GameObj*> sorted;
+        for (int i = 0; i < content->allObjs->size(); i++) {
+            GameObj* obj = content->allObjs->at(i);
+            if (!obj->transparent) continue;
+            float distance = glm::length(content->mainCamera->Position - obj->position);
+            sorted[distance] = obj;
         }
-        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-            glm::mat4 projection;
-            glm::mat4 model;
-            grassShader.use();
-            grassShader.setMat4("view", content->mainCamera->GetViewMatrix());
-            grassShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
-            model = glm::mat4();
-            model = glm::translate(model, it->second);
-            glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(content->mainCamera->Direc.x, 0.0f, content->mainCamera->Direc.z));
+        for (std::map<float, GameObj*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+            GameObj* obj = it->second;
+            TransparentMaterial* material = dynamic_cast<TransparentMaterial*>(dynamic_cast<CommonObj*>(obj)->material);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, material -> texture -> id);
 
+            //草转向相机
+            glm::mat4 model = glm::mat4();
+            model = glm::translate(model, it->second->position);
+            glm::vec3 cameraDirec_xz = glm::normalize(glm::vec3(content->mainCamera->Direc.x, 0.0f, content->mainCamera->Direc.z));
             glm::vec3 n = glm::vec3(0, 0, -1);
             const glm::vec3 half = glm::normalize(cameraDirec_xz + n);
             const double w = glm::dot(n, half);
@@ -308,8 +198,7 @@ int main(void)
             model = model * rotate;
 
             grassShader.setMat4("model", model);
-            glBindVertexArray(grassVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            obj->Draw();
         }
 
 

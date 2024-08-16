@@ -18,6 +18,8 @@ TextureCtrl::TextureCtrl(){
 	texEnum2TexLoader[TextureEnum::SSAONoiseTex] = LoadSSAONoiseTex;
     texEnum2TexLoader[TextureEnum::GroundTex] = []() {return Texture::Builder().LoadFromFile("../../MyWindow/skybox/ny.png").SetMipMap(true)
         .SetWrapS(GL_MIRRORED_REPEAT).SetWrapT(GL_MIRRORED_REPEAT).SetName("groundTex").Build(); };
+    texEnum2TexLoader[TextureEnum::GrassTex] = []() {return Texture::Builder().LoadFromFile("../../MyWindow/image/grass.png")
+        .SetInternalFormat(GL_SRGB_ALPHA).SetFormat(GL_RGBA).SetType(GL_UNSIGNED_BYTE).SetMipMap(true).SetName("grassTex").Build(); };
 }
 TextureCtrl::~TextureCtrl() {}
 

@@ -64,6 +64,13 @@ void RenderCtrl::Render(WindowContent* content) {
     //PBR PASS
     //延迟渲染全部为PBR材质，只需要一个PASS
     RenderCtrl::getInstance().DoPBRRenderPass(content);
+    //将Gbuffer深度缓冲复制到fbo
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().GBuffer->id);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id); // 写入到默认帧缓冲
+    glBlitFramebuffer(0, 0, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight, 0, 0, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id);
+
+    RenderCtrl::getInstance().RenderSkybox(content);
 }
 
 void RenderCtrl::DoGPass(WindowContent* content) {
@@ -191,6 +198,19 @@ void RenderCtrl::DoPBRRenderPass(WindowContent* content) {
 
 
 }
+
+void RenderCtrl::RenderSkybox(WindowContent* content) {
+    glDepthFunc(GL_LEQUAL);
+    skyboxShader->use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->cubeMapCache->id);
+    skyboxShader->setInt("skybox", 0);
+    skyboxShader->setMat4("projection", content->mainCamera->GetProjectionMatrix());
+    skyboxShader->setMat4("view", glm::mat4(glm::mat3(content->mainCamera->GetViewMatrix())));
+    content->skyboxObj->Draw();
+    glDepthFunc(GL_LESS);
+}
+
 
 
 void RenderCtrl::PrepareSSAOData() {

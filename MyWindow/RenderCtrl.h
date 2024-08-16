@@ -19,6 +19,7 @@ public:
     void DoShadowPass(WindowContent* content);
 
     void DoPBRRenderPass(WindowContent* content);
+    void RenderSkybox(WindowContent* content);
 
     void PrepareSSAOData();
 
@@ -36,6 +37,7 @@ private:
     Shader* SSAOBlurShader = new Shader("../../MyWindow/rawShaders/SSAOVertexShader.vs", "../../MyWindow/rawShaders/SSAOBlurFragmentShader.fs");
     Shader* shadowShader = new Shader("../../MyWindow/rawShaders/shadowVertexShader.vs", "../../MyWindow/rawShaders/shadowFragmentShader.fs");
     Shader* PBRShader = new Shader("../../MyWindow/rawShaders/PBRVertexShader.vs", "../../MyWindow/rawShaders/PBRFragmentShader.fs");
+    Shader* skyboxShader = new Shader ("../../MyWindow/rawShaders/skyboxVertexShader.vs", "../../MyWindow/rawShaders/skyboxFragmentShader.fs");
     // 私有构造函数和析构函数
     RenderCtrl();
     ~RenderCtrl();

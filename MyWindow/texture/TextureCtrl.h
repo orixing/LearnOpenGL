@@ -10,6 +10,7 @@ enum class TextureEnum {
 	SkyboxTex_AutumnPark,
 	SSAONoiseTex,
 	GroundTex,
+	GrassTex,
 };
 
 class TextureCtrl

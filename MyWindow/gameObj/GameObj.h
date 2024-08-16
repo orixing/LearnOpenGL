@@ -23,5 +23,6 @@ public:
 	glm::mat4 getModelMatrix();
 
 	bool renderBorder = false;
+	bool transparent = false;
 };
 
