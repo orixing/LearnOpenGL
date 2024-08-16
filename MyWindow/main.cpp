@@ -49,7 +49,6 @@ int main(void)
     Shader mirrorCowShader("../../MyWindow/rawShaders/mirrorCowVertexShader.vs", "../../MyWindow/rawShaders/mirrorCowFragmentShader.fs");
     Shader shadowShader("../../MyWindow/rawShaders/shadowVertexShader.vs", "../../MyWindow/rawShaders/shadowFragmentShader.fs");
     Shader groundShader("../../MyWindow/rawShaders/groundVertexShader.vs", "../../MyWindow/rawShaders/groundFragmentShader.fs");
-    Shader PBRShader("../../MyWindow/rawShaders/PBRVertexShader.vs", "../../MyWindow/rawShaders/PBRFragmentShader.fs");
     Shader FXAAShader("../../MyWindow/rawShaders/screenVertexShader.vs", "../../MyWindow/rawShaders/FXAAFragmentShader.fs");
 
     float screenVertices[] = {
@@ -114,28 +113,6 @@ int main(void)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    unsigned int fbo;
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    unsigned int fboColorTexture;
-    glGenTextures(1, &fboColorTexture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fboColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboColorTexture, 0);
-    unsigned int fboDepthStencilTexture;
-    glGenRenderbuffers(1, &fboDepthStencilTexture);
-    glBindRenderbuffer(GL_RENDERBUFFER, fboDepthStencilTexture);
-    glRenderbufferStorage(GL_RENDERBUFFER,  GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fboDepthStencilTexture);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
  
     vector<std::string> faces
     {
@@ -148,66 +125,96 @@ int main(void)
     };
     glActiveTexture(GL_TEXTURE0);
 
-    float planeVertices[] = {
-        // positions                 // texcoords
-         30.0f, -0.75f,  30.0f,   1.0f,  0.0f,
-        -30.0f, -0.75f,  30.0f,     0.0f,  0.0f,
-        -30.0f, -0.75f, -30.0f,     0.0f, 1.0f,
-                          
-         30.0f, -0.75f,  30.0f,  1.0f,  0.0f,
-        -30.0f, -0.75f, -30.0f,     0.0f, 1.0f,
-         30.0f, -0.75f, -30.0f,    1.0f, 1.0f
+    //float planeVertices[] = {
+    //    // positions                 // texcoords
+    //     30.0f, -0.75f,  30.0f,   1.0f,  0.0f,
+    //    -30.0f, -0.75f,  30.0f,     0.0f,  0.0f,
+    //    -30.0f, -0.75f, -30.0f,     0.0f, 1.0f,
+    //                      
+    //     30.0f, -0.75f,  30.0f,  1.0f,  0.0f,
+    //    -30.0f, -0.75f, -30.0f,     0.0f, 1.0f,
+    //     30.0f, -0.75f, -30.0f,    1.0f, 1.0f
 
-    };
-    unsigned int planeVAO;
-    glGenVertexArrays(1, &planeVAO);
-    unsigned int planeVBO;
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    //};
+    //unsigned int planeVAO;
+    //glGenVertexArrays(1, &planeVAO);
+    //unsigned int planeVBO;
+    //glGenBuffers(1, &planeVBO);
+    //glBindVertexArray(planeVAO);
+    //glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    //glEnableVertexAttribArray(0);
+    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
 
-    unsigned int groundTex;
-    glGenTextures(1, &groundTex);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, groundTex);
-    data = stbi_load("../../MyWindow/skybox/ny.png", &width, &height, &nrChannels, 0);
-    //data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(data);
+    //unsigned int groundTex;
+    //glGenTextures(1, &groundTex);
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, groundTex);
+    //data = stbi_load("../../MyWindow/skybox/ny.png", &width, &height, &nrChannels, 0);
+    ////data = stbi_load("../../MyWindow/image/grass.png", &width, &height, &nrChannels, 0);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    //glGenerateMipmap(GL_TEXTURE_2D);
+    //stbi_image_free(data);
     
-    //点光源设置
+    vector<float> planeVertices = {
+        30.0f, -0.75f, 30.0f, 0.0f, 1.0f, 0.0f, 10.0f,  0.0f,
+        -30.0f, -0.75f, 30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        -30.0f, -0.75f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 10.0f,
+        30.0f, -0.75f, -30.0f, 0.0f, 1.0f, 0.0f, 10.0f, 10.0f
+    };
+    vector<unsigned int> indices = {
+        0,1,2,
+        0,2,3
+    };
+    //todo:可能改成用工厂创建对象
+    WindowContent* content = WindowCtrl::getInstance().window2Content[window];
+
+    //添加地板
+    //构造mesh
+    Mesh* groundMesh = new Mesh(Vertex::genVertexByRawData(planeVertices), indices);
+    //构造model
+    Model* groundModel = new Model(groundMesh);
+
+    PBRMetalMaterial* groundMaterial = new PBRMetalMaterial();
+    groundMaterial->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::GroundTex);
+    groundMaterial->metallic = 0.0f;
+    groundMaterial->roughness = 1.0f;
+    /*PlasticMaterial* groundMaterial = new PlasticMaterial();
+    groundMaterial->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::GroundTex);*/
+    CommonObj* ground = new CommonObj(groundModel, groundMaterial);
+    content->allObjs->push_back(ground);
 
 
     //场景内的物体
     //todo:这里先临时直接加载，model是共享的，实际上运动物体有自己的model
     Model myModel("../../MyWindow/spot/spot_triangulated_good.obj");
 
-    //todo:改成用工厂创建对象
-    WindowContent* content = WindowCtrl::getInstance().window2Content[window];
-
     PlasticMaterial* m1 = new PlasticMaterial();
     m1->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
     CommonObj* cow1 = new CommonObj(&myModel, m1);
     cow1->position = glm::vec3(-1.3, 0.0, -0.5);
     cow1->yaw = 180.0f;
+    cow1->renderBorder = true;
 
 
     PBRMetalMaterial* m2 = new PBRMetalMaterial();
     m2->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
+    m2->metallic = 0.8f;
+    m2->roughness = 0.1f;
     CommonObj* cow2 = new CommonObj(&myModel, m2);
     cow2->yaw = 155.0f;
+    cow2->renderBorder = true;
 
     PBRMetalMaterial* m3 = new PBRMetalMaterial();
     m3->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
+    m3->metallic = 0.2f;
+    m3->roughness = 0.8f;
     CommonObj* cow3 = new CommonObj(&myModel, m3);
     cow3->position = glm::vec3(1.1, 0.0, 0.5);
     cow3->yaw = 130.0f;
+    cow3->renderBorder = true;
 
     content->allObjs->push_back(cow1);
     content->allObjs->push_back(cow2);
@@ -219,6 +226,8 @@ int main(void)
 
 
     content->allLights->push_back(new Light(glm::vec3(6, 2.5, 4.5)));
+    //content->allLights->push_back(new Light(glm::vec3(4.5, 2.5, 6)));
+
 
     while (!glfwWindowShouldClose(window))
     {
@@ -230,79 +239,29 @@ int main(void)
         glm::mat4 model;
         //-----------
 
-        //渲染Pass
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glViewport(0, 0, screenWidth, screenHeight);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        PBRShader.use();
-        glBindVertexArray(screenVAO);
-
-        glActiveTexture(GL_TEXTURE6);
-        glBindTexture(GL_TEXTURE_2D, content->allLights->at(0)->depthMapFBO->GetTexture("depthMap")->id);
-
-        glActiveTexture(GL_TEXTURE13);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gAlbedoSpec")->id);
-         
-        glActiveTexture(GL_TEXTURE10);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragColor")->id); 
-
-        glActiveTexture(GL_TEXTURE9);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gExtra")->id);
-        glActiveTexture(GL_TEXTURE11);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);
-        glActiveTexture(GL_TEXTURE12);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
-        glActiveTexture(GL_TEXTURE14);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragPosInLight")->id);
-
-        PBRShader.setInt("shadowMap", 6);
-        PBRShader.setInt("gExtra", 9);
-        //PBRShader.setInt("gFragColor", 10);
-        PBRShader.setInt("gPosition", 11);
-        PBRShader.setInt("gNormal", 12);
-        PBRShader.setInt("gAlbedo", 13);
-        PBRShader.setInt("gFragPosLightSpace", 14);
-        glActiveTexture(GL_TEXTURE7);
-        glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().SSAOBlurFBO->GetTexture("ssaoBlurTex")->id);//todo:临时处理，这里是错误的
-        PBRShader.setInt("texSSAO", 7);
-        PBRShader.setMat4("view", content->mainCamera->GetViewMatrix());
-        PBRShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
-        PBRShader.setVec3("lightColor", glm::vec3(50.0f, 50.0f, 50.0f));
-        glActiveTexture(GL_TEXTURE15);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLDiffuseLightTex->id);
-        PBRShader.setInt("irradianceMap", 15);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLSpecularLightTex->id);
-        PBRShader.setInt("prefilterMap", 4);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, content->skyboxObj->material->IBLSpecularBRDFTex->id);
-        PBRShader.setInt("brdfLUT", 5);
-        PBRShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
+        
         //将Gbuffer深度缓冲复制到fbo
         glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().GBuffer->id);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo); // 写入到默认帧缓冲
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id); // 写入到默认帧缓冲
         glBlitFramebuffer(
             0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST
         );
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id);
 
-        groundShader.use();
-        groundShader.setMat4("lightSpaceMatrix", content->allLights->at(0)->GetLightSpaceMatrix());
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, groundTex);
-        groundShader.setInt("groundTex", 0);
-        groundShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
-        groundShader.setMat4("view", content->mainCamera->GetViewMatrix());
-        groundShader.setMat4("model", glm::mat4());
-        groundShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
-        groundShader.setInt("shadowMap", 6);
-        groundShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
-        glBindVertexArray(planeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //groundShader.use();
+        //groundShader.setMat4("lightSpaceMatrix", content->allLights->at(0)->GetLightSpaceMatrix());
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, groundObj->material->texture->id);
+        //groundShader.setInt("groundTex", 0);
+        //groundShader.setMat4("projection", content->mainCamera->GetProjectionMatrix());
+        //groundShader.setMat4("view", content->mainCamera->GetViewMatrix());
+        //groundShader.setMat4("model", glm::mat4());
+        //groundShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
+        //glActiveTexture(GL_TEXTURE8);
+        //glBindTexture(GL_TEXTURE_2D, content->allLights->at(0)->depthMapFBO->GetTexture("depthMap")->id);
+        //groundShader.setInt("shadowMap", 8);
+        //groundShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
+        //groundObj->Draw();
 
 
         glDepthFunc(GL_LEQUAL);
@@ -358,20 +317,26 @@ int main(void)
 
         //复制模板缓冲
         glBindFramebuffer(GL_READ_FRAMEBUFFER, RenderCtrl::getInstance().GBuffer->id);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id);
         glBlitFramebuffer(
             0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_STENCIL_BUFFER_BIT, GL_NEAREST
         );
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, RenderCtrl::getInstance().postProcessingFBO->id);
 
-        glStencilFunc(GL_EQUAL, 0x0F, 0xFF);
-        glStencilMask(0x00); // 禁止模板缓冲的写入
-
-        borderRenderShader.use();
         glDisable(GL_DEPTH_TEST);
-        glBindVertexArray(screenVAO);
-        //borderRenderShader.setInt("colorTex", 15);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glStencilFunc(GL_NOTEQUAL, 0xFF, 0xFF);
+        glStencilMask(0x0F);
+
+        Shader* bShader = new Shader("../../MyWindow/rawShaders/GBorderVertexShader.vs", "../../MyWindow/rawShaders/borderRenderFragmentShader.fs");
+
+        bShader->use();
+        bShader->setMat4("view", content->mainCamera->GetViewMatrix());
+        bShader->setMat4("projection", content->mainCamera->GetProjectionMatrix());
+
+        for (GameObj* oneObj : *content->allObjs) {
+            if(oneObj->renderBorder)
+                oneObj->DrawInGPass(bShader);
+        }
 
         glStencilFunc(GL_ALWAYS, 0xFF, 0xFF);
         glStencilMask(0xFF);
@@ -387,7 +352,7 @@ int main(void)
             FXAAShader.use();
             glBindVertexArray(screenVAO);
             glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+            glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().postProcessingFBO->GetTexture("screenTex")->id);
             FXAAShader.setInt("screenTexture", 2);
         }
         else {
@@ -395,7 +360,7 @@ int main(void)
             glBindVertexArray(screenVAO);
 
             glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, fboColorTexture);
+            glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().postProcessingFBO->GetTexture("screenTex")->id);
 
             screenShader.setInt("screenTexture", 2);
         }

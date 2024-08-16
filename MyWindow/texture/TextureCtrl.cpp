@@ -16,6 +16,8 @@ TextureCtrl::TextureCtrl(){
     texEnum2TexLoader[TextureEnum::CowAlbedoTex] = []() {return Texture::Builder().LoadFromFile("../../MyWindow/spot/spot_texture.png").SetMipMap(true).SetName("CowAlbedoTex").Build(); };
 	texEnum2TexLoader[TextureEnum::SkyboxTex_AutumnPark] = []() {return Texture::Builder().LoadFromHDRFile("../../MyWindow/skybox/autumn_park_16k.hdr").SetName("SkyboxTex").Build(); };
 	texEnum2TexLoader[TextureEnum::SSAONoiseTex] = LoadSSAONoiseTex;
+    texEnum2TexLoader[TextureEnum::GroundTex] = []() {return Texture::Builder().LoadFromFile("../../MyWindow/skybox/ny.png").SetMipMap(true)
+        .SetWrapS(GL_MIRRORED_REPEAT).SetWrapT(GL_MIRRORED_REPEAT).SetName("groundTex").Build(); };
 }
 TextureCtrl::~TextureCtrl() {}
 

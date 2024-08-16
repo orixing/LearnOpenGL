@@ -14,7 +14,6 @@ public:
     static RenderCtrl& getInstance();
 
     void DoGPass(WindowContent* content);
-    void DoGBorderPass(WindowContent* content);
     void DoSSAOPass(WindowContent* content);
     void DoSSAOBlurPass(WindowContent* content);
     void DoShadowPass(WindowContent* content);
@@ -24,7 +23,7 @@ public:
     void PrepareSSAOData();
 
     std::vector<glm::vec3> SSAOKernel;
-    FrameBuffer* GBuffer, * SSAOFBO, * SSAOBlurFBO;
+    FrameBuffer* GBuffer, * SSAOFBO, * SSAOBlurFBO,* postProcessingFBO;
 
     unsigned int screenVAO;
 
@@ -36,6 +35,7 @@ private:
     Shader* SSAOShader = new Shader("../../MyWindow/rawShaders/SSAOVertexShader.vs", "../../MyWindow/rawShaders/SSAOFregmentShader.fs");
     Shader* SSAOBlurShader = new Shader("../../MyWindow/rawShaders/SSAOVertexShader.vs", "../../MyWindow/rawShaders/SSAOBlurFragmentShader.fs");
     Shader* shadowShader = new Shader("../../MyWindow/rawShaders/shadowVertexShader.vs", "../../MyWindow/rawShaders/shadowFragmentShader.fs");
+    Shader* PBRShader = new Shader("../../MyWindow/rawShaders/PBRVertexShader.vs", "../../MyWindow/rawShaders/PBRFragmentShader.fs");
     // 私有构造函数和析构函数
     RenderCtrl();
     ~RenderCtrl();

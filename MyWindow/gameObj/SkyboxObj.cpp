@@ -98,8 +98,7 @@ void SkyboxObj::PrecomputeIBL() {
 	for (unsigned int i = 0; i < 6; ++i)
 	{
 		HDRCubeShader.setMat4("view", captureViews[i]);
-		//cubeFBO.BindTexture(material->cubeMapCache, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, material->cubeMapCache->id, 0);
+		cubeFBO.BindTexture(material->cubeMapCache, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindFramebuffer(GL_FRAMEBUFFER, cubeFBO.id);
 		Draw();
@@ -124,8 +123,7 @@ void SkyboxObj::PrecomputeIBL() {
 	for (unsigned int i = 0; i < 6; ++i)
 	{
 		diffuseCubeShader.setMat4("view", captureViews[i]);
-		//cubeFBO.BindTexture(material->IBLDiffuseLightTex, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, material->IBLDiffuseLightTex->id, 0);
+		cubeFBO.BindTexture(material->IBLDiffuseLightTex, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		Draw();
 

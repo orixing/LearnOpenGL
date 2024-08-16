@@ -21,5 +21,7 @@ public:
 
 	//ªÒ»°Model±‰ªªæÿ’Û
 	glm::mat4 getModelMatrix();
+
+	bool renderBorder = false;
 };
 

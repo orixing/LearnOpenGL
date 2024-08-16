@@ -6,7 +6,7 @@ uniform sampler2D shadowMap;
 uniform sampler2D gFragColor;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
-uniform sampler2D gAlbedoSpec;
+uniform sampler2D gAlbedo;
 uniform sampler2D gFragPosLightSpace;
 uniform sampler2D texSSAO;
 
@@ -43,7 +43,7 @@ void main()
       vec4 FragPosLightSpace =  texture(gFragPosLightSpace, TexCoords);
 	  vec3 fragPos = texture(gPosition, TexCoords).rgb;
       vec3 Normal = texture(gNormal, TexCoords).rgb;
-      vec3 Albedo = texture(gAlbedoSpec, TexCoords).rgb;
+      vec3 Albedo = texture(gAlbedo, TexCoords).rgb;
      float ssao = texture(texSSAO, TexCoords).r;
 
       vec3 ambLightIntensity = vec3(1.0,1.0,1.0);

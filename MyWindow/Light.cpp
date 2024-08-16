@@ -8,6 +8,11 @@ glm::mat4 Light::GetLightSpaceMatrix() {
     return lightProjection * lightView;
 }
 
+glm::mat4 Light::GetLightView() {
+    return glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+
 glm::mat4 Light::GetLightProjection() {
     return glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
 }

@@ -14,18 +14,19 @@ RenderCtrl::RenderCtrl() {
 
     GBuffer = new FrameBuffer();
 
-    GBuffer->BindTexture(Texture::Builder().SetName("gFragColor").Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);// - 没用到
-    GBuffer->BindTexture(Texture::Builder().SetName("gPositionDepth").Build(), GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);// - 世界坐标位置
-    GBuffer->BindTexture(Texture::Builder().SetName("gNormal").Build(), GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D);// - 法线
-    GBuffer->BindTexture(Texture::Builder().SetName("gAlbedoSpec").Build(), GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D);//albedo颜色
-    GBuffer->BindTexture(Texture::Builder().SetName("gFragPosInLight").Build(), GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D);// 在光源中的位置 将来要删掉
-    GBuffer->BindTexture(Texture::Builder().SetName("gBorder").Build(), GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D);//是否是边界，搬到extra里
-    GBuffer->BindTexture(Texture::Builder().SetName("gExtra").Build(), GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D);//材质信息
+    GBuffer->BindTexture(Texture::Builder().SetName("gPosition").Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);// - 世界坐标位置
+    GBuffer->BindTexture(Texture::Builder().SetName("gNormal").Build(), GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D);// - 法线
+    GBuffer->BindTexture(Texture::Builder().SetName("gAlbedo").Build(), GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D);//albedo颜色
+    GBuffer->BindTexture(Texture::Builder().SetName("gExtra").Build(), GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D);//材质信息
     GBuffer->AddRenderbuffer(GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
-    GBuffer->SetDrawBuffers({ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6 });
+    GBuffer->SetDrawBuffers({ GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 });
 
     //---------------预准备SSAO数据
     PrepareSSAOData();
+
+    postProcessingFBO = new FrameBuffer();
+    postProcessingFBO->BindTexture(Texture::Builder().SetName("screenTex").SetInternalFormat(GL_SRGB).SetFormat(GL_RGB).SetType(GL_UNSIGNED_BYTE).Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
+    postProcessingFBO->AddRenderbuffer(GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
 
     //todo:Screen的VAO，看看怎么初始化合适
     float screenVertices[] = {
@@ -55,8 +56,6 @@ RenderCtrl::~RenderCtrl() {
 void RenderCtrl::Render(WindowContent* content) {
     //GPass
     RenderCtrl::getInstance().DoGPass(content);
-    //--------Gpass 描边
-    RenderCtrl::getInstance().DoGBorderPass(content);
     //SSAOFBO
     RenderCtrl::getInstance().DoSSAOPass(content);
     RenderCtrl::getInstance().DoSSAOBlurPass(content);
@@ -64,6 +63,7 @@ void RenderCtrl::Render(WindowContent* content) {
     RenderCtrl::getInstance().DoShadowPass(content);
     //PBR PASS
     //延迟渲染全部为PBR材质，只需要一个PASS
+    RenderCtrl::getInstance().DoPBRRenderPass(content);
 }
 
 void RenderCtrl::DoGPass(WindowContent* content) {
@@ -81,33 +81,15 @@ void RenderCtrl::DoGPass(WindowContent* content) {
     gPassShader->setMat4("view", content->mainCamera->GetViewMatrix());
     gPassShader->setMat4("projection", content->mainCamera->GetProjectionMatrix());
     gPassShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-    glStencilMask(0xFF); // 启用模板缓冲写入
-    glStencilFunc(GL_ALWAYS, 0xFF, 0xFF); // 所有的片段都应该更新模板缓冲
     
 
     for (GameObj* oneObj : *content->allObjs) {
+
+        glStencilFunc(GL_ALWAYS, 0xFF, 0xFF); // 所有的片段都应该更新模板缓冲
+        oneObj->renderBorder ? glStencilMask(0xFF) : glStencilMask(0x00); // 对描边的物体启用模板缓冲写入
         oneObj->DrawInGPass(gPassShader);
     }
 }
-
-//Shader将模型放大一圈，使用模板缓冲筛选出放大的部分作为边界
-void RenderCtrl::DoGBorderPass(WindowContent* content) {
-    glDisable(GL_DEPTH_TEST);
-    glStencilFunc(GL_NOTEQUAL, 0xFF, 0xFF);
-    glStencilMask(0x0F);
-    gBorderShader->use();
-    gBorderShader->setMat4("view", content->mainCamera->GetViewMatrix());
-    gBorderShader->setMat4("projection", content->mainCamera->GetProjectionMatrix());
-
-    for (GameObj* oneObj : *content->allObjs) {
-        oneObj->DrawInGPass(gBorderShader);
-    }
-
-    glEnable(GL_DEPTH_TEST);
-    glStencilFunc(GL_ALWAYS, 0xFF, 0xFF);
-    glStencilMask(0x00);
-}
-
 
 void RenderCtrl::DoSSAOPass(WindowContent* content) {
     glBindFramebuffer(GL_FRAMEBUFFER, SSAOFBO->id);
@@ -115,7 +97,7 @@ void RenderCtrl::DoSSAOPass(WindowContent* content) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     SSAOShader->use();
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPosition")->id);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
     glActiveTexture(GL_TEXTURE5);
@@ -123,7 +105,7 @@ void RenderCtrl::DoSSAOPass(WindowContent* content) {
     for (GLuint i = 0; i < 64; ++i) {
         SSAOShader->setVec3(("samples[" + std::to_string(i) + "]").c_str(), SSAOKernel[i]);
     }
-    SSAOShader->setInt("gPositionDepth", 3);
+    SSAOShader->setInt("gPosition", 3);
     SSAOShader->setInt("gNormal", 4);
     SSAOShader->setInt("texNoise", 5);
     SSAOShader->setMat4("projection", content->mainCamera->GetProjectionMatrix());
@@ -158,56 +140,54 @@ void RenderCtrl::DoShadowPass(WindowContent* content) {
 
 void RenderCtrl::DoPBRRenderPass(WindowContent* content) {
     //渲染Pass
-    //glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    //glViewport(0, 0, screenWidth, screenHeight);
-    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO->id);
+    glViewport(0, 0, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    //PBRShader.use();
-    //glBindVertexArray(screenVAO);
+    PBRShader->use();
+    glBindVertexArray(screenVAO);
 
-    //glActiveTexture(GL_TEXTURE6);
-    //glBindTexture(GL_TEXTURE_2D, content->allLights->at(0)->depthMapFBO->GetTexture("depthMap")->id);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPosition")->id);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gAlbedo")->id);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gExtra")->id);
+    PBRShader->setInt("gPosition", 0);
+    PBRShader->setInt("gNormal", 1);
+    PBRShader->setInt("gAlbedo", 2);
+    PBRShader->setInt("gExtra", 3);
 
-    //glActiveTexture(GL_TEXTURE13);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gAlbedoSpec")->id);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLDiffuseLightTex->id);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLSpecularLightTex->id);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, content->skyboxObj->material->IBLSpecularBRDFTex->id);
+    PBRShader->setInt("irradianceMap", 4);
+    PBRShader->setInt("prefilterMap", 5);
+    PBRShader->setInt("brdfLUT", 6);
 
-    //glActiveTexture(GL_TEXTURE10);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragColor")->id);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().SSAOBlurFBO->GetTexture("ssaoBlurTex")->id);//todo:临时处理，这里是错误的
+    PBRShader->setInt("texSSAO", 7);
 
-    //glActiveTexture(GL_TEXTURE9);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gExtra")->id);
-    //glActiveTexture(GL_TEXTURE11);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gPositionDepth")->id);
-    //glActiveTexture(GL_TEXTURE12);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gNormal")->id);
-    //glActiveTexture(GL_TEXTURE14);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().GBuffer->GetTexture("gFragPosInLight")->id);
+    PBRShader->setInt("lightNum", content->allLights->size());
+    for (int i = 0; i < content->allLights->size(); i++) {
+        PBRShader->setVec3("lights[" + std::to_string(i) + "].position", content->allLights->at(i)->lightPos);
+        PBRShader->setVec3("lights[" + std::to_string(i) + "].intensity", content->allLights->at(i)->color);
+        PBRShader->setMat4("lights[" + std::to_string(i) + "].viewMat", content->allLights->at(i)->GetLightView());
+        PBRShader->setMat4("lights[" + std::to_string(i) + "].projMat", content->allLights->at(i)->GetLightProjection());
+        glActiveTexture(GL_TEXTURE8 + i);
+        glBindTexture(GL_TEXTURE_2D, content->allLights->at(i)->depthMapFBO->GetTexture("depthMap")->id);
+        PBRShader->setInt("lights[" + std::to_string(i) + "].shadowMap", 8+i);
+    }
 
-    //PBRShader.setInt("shadowMap", 6);
-    //PBRShader.setInt("gExtra", 9);
-    ////PBRShader.setInt("gFragColor", 10);
-    //PBRShader.setInt("gPosition", 11);
-    //PBRShader.setInt("gNormal", 12);
-    //PBRShader.setInt("gAlbedo", 13);
-    //PBRShader.setInt("gFragPosLightSpace", 14);
-    //glActiveTexture(GL_TEXTURE7);
-    //glBindTexture(GL_TEXTURE_2D, RenderCtrl::getInstance().SSAOBlurFBO->GetTexture("ssaoBlurTex")->id);//todo:临时处理，这里是错误的
-    //PBRShader.setInt("texSSAO", 7);
-    //PBRShader.setMat4("view", content->mainCamera->GetViewMatrix());
-    //PBRShader.setVec3("lightPos", content->allLights->at(0)->lightPos);
-    //PBRShader.setVec3("lightColor", glm::vec3(50.0f, 50.0f, 50.0f));
-    //glActiveTexture(GL_TEXTURE15);
-    //glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLDiffuseLightTex->id);
-    //PBRShader.setInt("irradianceMap", 15);
-    //glActiveTexture(GL_TEXTURE4);
-    //glBindTexture(GL_TEXTURE_CUBE_MAP, content->skyboxObj->material->IBLSpecularLightTex->id);
-    //PBRShader.setInt("prefilterMap", 4);
-    //glActiveTexture(GL_TEXTURE5);
-    //glBindTexture(GL_TEXTURE_2D, content->skyboxObj->material->IBLSpecularBRDFTex->id);
-    //PBRShader.setInt("brdfLUT", 5);
-    //PBRShader.setMat4("lightInverseProj", glm::inverse(content->allLights->at(0)->GetLightProjection()));
-    //glDrawArrays(GL_TRIANGLES, 0, 6);
+    PBRShader->setMat4("view", content->mainCamera->GetViewMatrix());
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
 }

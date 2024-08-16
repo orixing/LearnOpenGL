@@ -8,12 +8,14 @@ public:
 	~Light();
 	glm::mat4 GetLightSpaceMatrix();
 	glm::mat4 GetLightProjection();
+	glm::mat4 GetLightView();
 
 	FrameBuffer* depthMapFBO;
 
 	static const int ShadowMapWidth = 1024;
 	static const int ShadowMapHeight = 1024;
 	glm::vec3 lightPos;
+	glm::vec3 color = glm::vec3(50.0f, 50.0f, 50.0f);
 private:
 };
 
