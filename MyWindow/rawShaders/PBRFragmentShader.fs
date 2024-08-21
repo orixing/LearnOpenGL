@@ -181,11 +181,12 @@ vec3 PointLight(int lightIndex){
     vec3 Lo = vec3(0.0);
     vec3 L = normalize(lightPos - WorldPos);//世界坐标到光的向量
     vec3 H = normalize(V + L);
-    float distance    = length(lightPos - WorldPos);
-    float attenuation = 1.0 / (distance * distance);
+    //float distance    = length(lightPos - WorldPos);
+    float distance = 1.0;
+    float attenuation = 1.0 / (distance * distance); //todo:现在只有一个阳光，假设是太阳光，应该用平行光
     vec3 radiance     = lights[lightIndex].intensity * attenuation; 
 
-    albedo = pow(albedo, vec3(2.2));
+    //albedo = pow(albedo, vec3(2.2));
 
     if(isPBR){
         vec3 F0 = mix(vec3(0.04), albedo, metallic);
@@ -202,34 +203,15 @@ vec3 PointLight(int lightIndex){
         float NdotL = max(dot(N, L), 0.0);        
         Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1-shadow);
 
-        //漫反射环境光 1-F * 1-m * c * L（PI已经处理过了）* ao
-
-        vec3 ambientDiffuse = (1 - F) * (1-metallic) * texture(irradianceMap, N).rgb * ao * albedo;
-
-        //镜面环境光
-        vec3 R = reflect(-V, N);   
-        const float MAX_REFLECTION_LOD = 4.0;
-        vec3 envLight = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;  
-        vec2 envBRDF  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-        vec3 envSpecular = envLight * (F0 * envBRDF.x + envBRDF.y) * ao;
-
-
         //vec3 ambient = vec3(0.0005) * albedo * ao;
-        vec3 color   = 0.0*ambientDiffuse  +  0.0*envSpecular + Lo;  
+        vec3 color = Lo;  
         //vec3 color   =  vec3(F0 * envBRDF.x + envBRDF.y);
-
-        color = color / (color + vec3(1.0));
         return color;
     }
     
     else{
-        vec3 ambLightIntensity = vec3(1.0,1.0,1.0);
-        vec3 ka = vec3(0.0005,0.0005,0.0005);
-        vec3 ambient = ka * ambLightIntensity * ao;
-
-        vec3 lightIntensity = vec3(5.0,5.0,5.0);
+        vec3 lightIntensity = radiance;
         vec3 kd = albedo;
-        float distance = length(lightPos-WorldPos);
         vec3 diffuse = kd * max(0.0, dot(N, L)) * lightIntensity / distance;
 
         vec3 ks = vec3(0.7937, 0.7937, 0.7937);
@@ -238,7 +220,7 @@ vec3 PointLight(int lightIndex){
         vec3 specular = ks * spec * lightIntensity / distance;
 
         float shadow = PCSS(lightIndex, FragPosLightSpace);
-        vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));  
+        vec3 lighting = (1.0 - shadow) * (diffuse + specular) * 0.3;  //和pbr放在一起使用一样的光照有点太亮了，原因未知，乘个系数
         return lighting;
     }
 }
@@ -256,7 +238,7 @@ vec3 EnvLight(){
     vec3 N = normalize(Normal); 
     vec3 V = normalize(-WorldPos);//世界坐标到视线的向量
 
-    albedo = pow(albedo, vec3(2.2));
+    //albedo = pow(albedo, vec3(2.2));
 
     if(isPBR){
         vec3 F0 = mix(vec3(0.04), albedo, metallic);
@@ -272,14 +254,12 @@ vec3 EnvLight(){
         vec2 envBRDF  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
         vec3 envSpecular = envLight * (F0 * envBRDF.x + envBRDF.y) * ao;
 
-        vec3 color   = 0.2 * ambientDiffuse  + 0.2 * envSpecular;  
-
-        color = color / (color + vec3(1.0));
+        vec3 color = ambientDiffuse  + envSpecular;  
         return color;
     }
     
     else{
-        vec3 ambLightIntensity = vec3(1.0,1.0,1.0);
+        vec3 ambLightIntensity = vec3(100.0,100.0,100.0);
         vec3 ka = vec3(0.0005,0.0005,0.0005);
         vec3 ambient = ka * ambLightIntensity * ao;
         return ambient;
@@ -295,5 +275,10 @@ void main()
     //处理环境光照
     color += EnvLight();
 
-    FragColor = vec4(pow(color, vec3(1.0/2.2)),1.0); 
+    color = color / (color + vec3(1.0));//色调映射
+
+    //vec3 albedo = texture(gAlbedo, TexCoords).rgb;
+    //albedo = pow(albedo, vec3(1.0/2.2)); 
+    //FragColor = vec4(pow(color, vec3(1.0/2.2)),1.0); 
+    FragColor = vec4(color,1.0); 
 }

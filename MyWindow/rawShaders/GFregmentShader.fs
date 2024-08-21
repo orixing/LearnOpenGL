@@ -7,7 +7,6 @@ layout (location = 3) out vec4 gExtra;
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
-in vec4 FragPosLightSpace;
 uniform float materialType;
 uniform float metallic;
 uniform float roughness;

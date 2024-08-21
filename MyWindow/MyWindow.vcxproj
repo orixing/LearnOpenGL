@@ -145,6 +145,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="material\PlasticMaterial.cpp" />
     <ClCompile Include="material\PBRMetalMaterial.cpp" />
+    <ClCompile Include="gameObj\ScreenObj.cpp" />
     <ClCompile Include="shaders\Shader.cpp" />
     <ClCompile Include="rawShaders\源.cpp" />
     <ClCompile Include="gameObj\SkyboxObj.cpp" />
@@ -152,7 +153,7 @@
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="texture\TextureCtrl.cpp" />
     <ClCompile Include="texture\Texture.cpp" />
-    <ClCompile Include="gameObj\TransparentObj.cpp" />
+    <ClCompile Include="gameObj\BillboardingObj.cpp" />
     <ClCompile Include="material\TransparentMaterial.cpp" />
     <ClCompile Include="WindowContent.cpp" />
     <ClCompile Include="WindowCtrl.cpp" />
@@ -171,13 +172,14 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="material\PlasticMaterial.h" />
     <ClInclude Include="material\PBRMetalMaterial.h" />
+    <ClInclude Include="gameObj\ScreenObj.h" />
     <ClInclude Include="shaders\Shader.h" />
     <ClInclude Include="gameObj\SkyboxObj.h" />
     <ClInclude Include="material\SkyboxMaterial.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture\TextureCtrl.h" />
     <ClInclude Include="texture\Texture.h" />
-    <ClInclude Include="gameObj\TransparentObj.h" />
+    <ClInclude Include="gameObj\BillboardingObj.h" />
     <ClInclude Include="material\TransparentMaterial.h" />
     <ClInclude Include="WindowContent.h" />
     <ClInclude Include="WindowCtrl.h" />

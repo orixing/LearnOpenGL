@@ -61,7 +61,7 @@ SkyboxObj::~SkyboxObj() {}
 
 
 void SkyboxObj::PrecomputeIBL() {
-	//todo:增加ShaderCtrl
+	//todo:考虑增加ShaderCtrl
 	Shader HDRCubeShader("../../MyWindow/rawShaders/HDR2CubeVertexShader.vs", "../../MyWindow/rawShaders/HDR2CubeFragmentShader.fs");
 	Shader diffuseCubeShader("../../MyWindow/rawShaders/diffuseCubeVertexShader.vs", "../../MyWindow/rawShaders/diffuseCubeFragmentShader.fs");
 	Shader specularLightShader("../../MyWindow/rawShaders/diffuseCubeVertexShader.vs", "../../MyWindow/rawShaders/specularCubeFragmentShader.fs");
@@ -143,7 +143,7 @@ void SkyboxObj::PrecomputeIBL() {
 	for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
 	{
 		// reisze framebuffer according to mip-level size.
-		unsigned int mipSize = 1024 * std::pow(0.5, mip);
+		unsigned int mipSize = GlobalConst::specularCubeSize * std::pow(0.5, mip);
 
 		cubeFBO.AddRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, mipSize, mipSize);
 

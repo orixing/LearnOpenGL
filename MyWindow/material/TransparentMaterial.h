@@ -7,5 +7,7 @@ public:
 	TransparentMaterial();
 	~TransparentMaterial() override;
 	Texture* texture;
+
+	void Draw() override;
 };
 

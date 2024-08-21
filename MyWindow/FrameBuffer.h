@@ -10,7 +10,6 @@ public:
 
 	unsigned int id;
 
-
 	void BindTexture(Texture* texture,GLenum attachment, GLenum texTarget = GL_TEXTURE_2D, GLint mipLevel= 0);
 	void AddRenderbuffer(GLenum attachment, GLenum internalFormat, int width, int height);
 	void NoColorTexture();

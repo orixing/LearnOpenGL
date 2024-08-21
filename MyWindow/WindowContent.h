@@ -22,6 +22,8 @@ public:
 
 	SkyboxObj* skyboxObj;
 
+	FrameBuffer* GBuffer, * SSAOFBO, * SSAOBlurFBO, * postProcessingFBO;
+
 	WindowContent(Camera* c);
 	~WindowContent();
 };

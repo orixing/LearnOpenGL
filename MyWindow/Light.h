@@ -15,7 +15,7 @@ public:
 	static const int ShadowMapWidth = 1024;
 	static const int ShadowMapHeight = 1024;
 	glm::vec3 lightPos;
-	glm::vec3 color = glm::vec3(50.0f, 50.0f, 50.0f);
+	glm::vec3 color = glm::vec3(10.0f, 10.0f, 10.0f);
 private:
 };
 

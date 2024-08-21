@@ -84,6 +84,15 @@
     <ClCompile Include="material\SkyboxMaterial.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gameObj\BillboardingObj.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="material\TransparentMaterial.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gameObj\ScreenObj.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -147,6 +156,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="material\SkyboxMaterial.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gameObj\BillboardingObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="material\TransparentMaterial.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gameObj\ScreenObj.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

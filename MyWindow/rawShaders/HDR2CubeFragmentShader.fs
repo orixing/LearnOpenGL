@@ -31,7 +31,6 @@ void main()
     vec3 color = texture(envHDRTex, uv).rgb;
 
     color = ACESToneMapping(color, 1.0);
-
     color.x = min(1.0,color.x);
     color.y = min(1.0,color.y);
     color.z = min(1.0,color.z);

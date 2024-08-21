@@ -24,9 +24,6 @@ public:
 
 	GLFWwindow* NewWindow();
 
-	static const int ScreenWidth = 800; 
-	static const int ScreenHeight = 600;
-
 private:
 	WindowCtrl();
 	~WindowCtrl();

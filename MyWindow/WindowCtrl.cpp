@@ -8,8 +8,7 @@ WindowCtrl& WindowCtrl::getInstance() {
 }
 
 GLFWwindow* WindowCtrl::NewWindow() {
-    GLFWwindow* window = glfwCreateWindow(WindowCtrl::ScreenWidth, WindowCtrl::ScreenHeight, "LearnOpenGL", NULL, NULL);
-    WindowCtrl::getInstance().window2Content[window] = new WindowContent(new Camera(glm::vec3(0.0f, 0.0f, 4.0f)));
+    GLFWwindow* window = glfwCreateWindow(GlobalConst::ScreenWidth, GlobalConst::ScreenHeight, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -29,6 +28,8 @@ GLFWwindow* WindowCtrl::NewWindow() {
         return nullptr;
     }
 
+    WindowCtrl::getInstance().window2Content[window] = new WindowContent(new Camera(glm::vec3(0.0f, 0.0f, 4.0f)));
+
     return window;
 }
 
@@ -45,6 +46,14 @@ void WindowCtrl::Tick() {
         processHotKeyInput(window);
         //äÖÈ¾´°¿Ú
         RenderCtrl::getInstance().Render(content);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR) {
+            std::cerr << err << std::endl;
+        }
 	}
 }
 

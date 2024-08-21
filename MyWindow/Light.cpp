@@ -22,7 +22,6 @@ Light::Light(glm::vec3 lightPos) : lightPos(lightPos){
     GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
     Texture* depthMapTex = Texture::Builder().SetInternalFormat(GL_DEPTH_COMPONENT).SetFormat(GL_DEPTH_COMPONENT).SetWidth(ShadowMapWidth)
         .SetHeight(ShadowMapHeight).SetName("depthMap").SetWrapS(GL_CLAMP_TO_BORDER).SetWrapT(GL_CLAMP_TO_BORDER).SetBorder(borderColor).Build();
-    //todo:所有的light可以用同一个FBO
     depthMapFBO = new FrameBuffer();
     depthMapFBO->BindTexture(depthMapTex, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D);
     depthMapFBO->NoColorTexture();

@@ -9,4 +9,6 @@ public:
 	virtual ~Material() = 0;
 	MaterialEnum materialEnum;
 	virtual void DrawInGPass(Shader* shader);
+	virtual void Draw();
+	Shader* shader;
 };
