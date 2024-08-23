@@ -24,9 +24,10 @@ public:
     }
 
     void Draw();
+
+    vector<Mesh> meshes;//todo:模型加载这里有问题，应该是Obj文件直接加载成嵌套的GameObj，每个GameObj有对应的mesh，然后没有model类
+    //牛模型只有一个mesh，先不处理嵌套
 private:
-    /*  模型数据  */
-    vector<Mesh> meshes;
     /*  函数   */
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);

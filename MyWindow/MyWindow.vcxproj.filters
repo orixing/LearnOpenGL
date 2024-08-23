@@ -93,6 +93,12 @@
     <ClCompile Include="gameObj\ScreenObj.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="physical\PhysicalComponent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="physical\RigidBody.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -165,6 +171,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gameObj\ScreenObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\PhysicalComponent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\RigidBody.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\IPhysical.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

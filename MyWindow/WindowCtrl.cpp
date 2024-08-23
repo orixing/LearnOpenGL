@@ -44,6 +44,14 @@ void WindowCtrl::Tick() {
 		content->frameDeltaTime = content->curFrameTime - content->lastFrameTime;
 		//检测输入
         processHotKeyInput(window);
+        //物理模拟
+        for (GameObj* obj : *content->allObjs) {
+            if (obj->physical == NULL) continue;
+            obj->physical->BeforeCollision();
+            //这里先只做地面和物体之间的碰撞检测
+            obj->physical->HandleCollision(nullptr);
+            obj->physical->AfterCollision();
+        }
         //渲染窗口
         RenderCtrl::getInstance().Render(content);
 
@@ -86,6 +94,8 @@ void WindowCtrl::processHotKeyInput(GLFWwindow* window)
         content->mainCamera->ProcessKeyboard(DirecEnum::Right, content->frameDeltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         content->useFXAA = !content->useFXAA;
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        content->ShootNewObj();
 }
 
 void WindowCtrl::mouseInputCallback(GLFWwindow* window, double xpos, double ypos) {
