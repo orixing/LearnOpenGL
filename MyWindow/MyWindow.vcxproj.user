@@ -5,6 +5,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)$(Platform)\$(Configuration)\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerDebuggerType>Script</LocalDebuggerDebuggerType>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

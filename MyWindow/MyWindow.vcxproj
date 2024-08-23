@@ -107,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories);$(ProjectDir);$(ProjectDir)\material;$(ProjectDir)\shaders;$(ProjectDir)\gameObj;$(ProjectDir)\texture;$(ProjectDir)\camera</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,56 +132,96 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="camera\Camera.cpp" />
+    <ClCompile Include="gameObj\CommonObj.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="gameObj\GameObj.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="RenderCtrl.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="material\Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="shaders\源.cpp" />
+    <ClCompile Include="material\PlasticMaterial.cpp" />
+    <ClCompile Include="material\PBRMetalMaterial.cpp" />
+    <ClCompile Include="gameObj\ScreenObj.cpp" />
+    <ClCompile Include="shaders\Shader.cpp" />
+    <ClCompile Include="rawShaders\源.cpp" />
+    <ClCompile Include="gameObj\SkyboxObj.cpp" />
+    <ClCompile Include="material\SkyboxMaterial.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="texture\TextureCtrl.cpp" />
+    <ClCompile Include="texture\Texture.cpp" />
+    <ClCompile Include="gameObj\BillboardingObj.cpp" />
+    <ClCompile Include="material\TransparentMaterial.cpp" />
+    <ClCompile Include="WindowContent.cpp" />
+    <ClCompile Include="WindowCtrl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
+    <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="gameObj\CommonObj.h" />
+    <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="gameObj\GameObj.h" />
+    <ClInclude Include="GlobalConst.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="RenderCtrl.h" />
+    <ClInclude Include="material\MaterialEnum.h" />
+    <ClInclude Include="material\Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="material\PlasticMaterial.h" />
+    <ClInclude Include="material\PBRMetalMaterial.h" />
+    <ClInclude Include="gameObj\ScreenObj.h" />
+    <ClInclude Include="shaders\Shader.h" />
+    <ClInclude Include="gameObj\SkyboxObj.h" />
+    <ClInclude Include="material\SkyboxMaterial.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="texture\TextureCtrl.h" />
+    <ClInclude Include="texture\Texture.h" />
+    <ClInclude Include="gameObj\BillboardingObj.h" />
+    <ClInclude Include="material\TransparentMaterial.h" />
+    <ClInclude Include="WindowContent.h" />
+    <ClInclude Include="WindowCtrl.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\boomGeometryShader.gs" />
-    <None Include="shaders\borderFragmentShader.fs" />
-    <None Include="shaders\borderVertexShader.vs" />
-    <None Include="shaders\diffuseCubeFragmentShader.fs" />
-    <None Include="shaders\diffuseCubeVertexShader.vs" />
-    <None Include="shaders\FXAAFragmentShader.fs" />
-    <None Include="shaders\GFregmentShader.fs" />
-    <None Include="shaders\grassFragmentShader.fs" />
-    <None Include="shaders\grassVertexShader.vs" />
-    <None Include="shaders\groundFragmentShader.fs" />
-    <None Include="shaders\groundVertexShader.vs" />
-    <None Include="shaders\GVertexShader.vs" />
-    <None Include="shaders\HDR2CubeFragmentShader.fs" />
-    <None Include="shaders\HDR2CubeVertexShader.vs" />
-    <None Include="shaders\lightFregmentShader.fs" />
-    <None Include="shaders\mirrorCowFragmentShader.fs" />
-    <None Include="shaders\mirrorCowVertexShader.vs" />
-    <None Include="shaders\objScreenVertexShader.vs" />
-    <None Include="shaders\PBRFragmentShader.fs" />
-    <None Include="shaders\PBRVertexShader.vs" />
-    <None Include="shaders\screenFragmentShader.fs" />
-    <None Include="shaders\screenVertexShader.vs" />
-    <None Include="shaders\shadowFragmentShader.fs" />
-    <None Include="shaders\shadowVertexShader.vs" />
-    <None Include="shaders\skyboxFragmentShader.fs" />
-    <None Include="shaders\skyboxVertexShader.vs" />
-    <None Include="shaders\specularBRDFFragmentShader.fs" />
-    <None Include="shaders\specularCubeFragmentShader.fs" />
-    <None Include="shaders\SSAOBlurFragmentShader.fs" />
-    <None Include="shaders\SSAOFregmentShader.fs" />
-    <None Include="shaders\SSAOVertexShader.vs" />
-    <None Include="shaders\vertexShader.vs" />
-    <None Include="shaders\objFregmentShader.fs" />
+    <None Include="rawShaders\boomGeometryShader.gs" />
+    <None Include="rawShaders\borderFragmentShader.fs" />
+    <None Include="rawShaders\borderRenderFragmentShader.fs" />
+    <None Include="rawShaders\borderRenderVertexShader.vs" />
+    <None Include="rawShaders\borderVertexShader.vs" />
+    <None Include="rawShaders\diffuseCubeFragmentShader.fs" />
+    <None Include="rawShaders\diffuseCubeVertexShader.vs" />
+    <None Include="rawShaders\FXAAFragmentShader.fs" />
+    <None Include="rawShaders\GBorderFragmentShader.fs" />
+    <None Include="rawShaders\GBorderVertexShader.vs" />
+    <None Include="rawShaders\GFregmentShader.fs" />
+    <None Include="rawShaders\grassFragmentShader.fs" />
+    <None Include="rawShaders\grassVertexShader.vs" />
+    <None Include="rawShaders\groundFragmentShader.fs" />
+    <None Include="rawShaders\groundVertexShader.vs" />
+    <None Include="rawShaders\GVertexShader.vs" />
+    <None Include="rawShaders\HDR2CubeFragmentShader.fs" />
+    <None Include="rawShaders\HDR2CubeVertexShader.vs" />
+    <None Include="rawShaders\lightFregmentShader.fs" />
+    <None Include="rawShaders\mirrorCowFragmentShader.fs" />
+    <None Include="rawShaders\mirrorCowVertexShader.vs" />
+    <None Include="rawShaders\objVertexShader.vs" />
+    <None Include="rawShaders\PBRFragmentShader.fs" />
+    <None Include="rawShaders\PBRVertexShader.vs" />
+    <None Include="rawShaders\screenFragmentShader.fs" />
+    <None Include="rawShaders\screenVertexShader.vs" />
+    <None Include="rawShaders\shadowFragmentShader.fs" />
+    <None Include="rawShaders\shadowVertexShader.vs" />
+    <None Include="rawShaders\skyboxFragmentShader.fs" />
+    <None Include="rawShaders\skyboxVertexShader.vs" />
+    <None Include="rawShaders\specularBRDFFragmentShader.fs" />
+    <None Include="rawShaders\specularCubeFragmentShader.fs" />
+    <None Include="rawShaders\SSAOBlurFragmentShader.fs" />
+    <None Include="rawShaders\SSAOFregmentShader.fs" />
+    <None Include="rawShaders\SSAOVertexShader.vs" />
+    <None Include="rawShaders\vertexShader.vs" />
+    <None Include="rawShaders\blinnPhoneFregmentShader.fs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
