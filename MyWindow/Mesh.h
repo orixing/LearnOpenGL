@@ -12,16 +12,13 @@ using std::vector;
 #include <assimp/postprocess.h>
 
 
-struct Vertex {
+class Vertex {
+public:
     glm::vec3 Position;
     glm::vec3 Normal;
     glm::vec2 TexCoords;
-};
 
-struct Texture {
-    unsigned int id;
-    string type;
-    aiString path;  // 我们储存纹理的路径用于与其它纹理进行比较
+    static vector<Vertex> genVertexByRawData(vector<float>& vertexData);
 };
 
 class Mesh {
@@ -29,10 +26,9 @@ public:
     /*  网格数据  */
     vector<Vertex> vertices;
     vector<unsigned int> indices;
-    vector<Texture> textures;
     /*  函数  */
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
-    void Draw(Shader shader);
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices);
+    void Draw();
 private:
     /*  渲染数据  */
     unsigned int VAO, VBO, EBO;
