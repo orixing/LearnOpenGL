@@ -12,6 +12,7 @@
 #include "TransparentMaterial.h"
 #include "WindowCtrl.h"
 #include "SkyboxMaterial.h"
+#include "StaticEntity.h"
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
 #include <glm/glm/glm.hpp>
@@ -53,6 +54,8 @@ int main(void)
     groundMaterial->metallic = 0.0f;
     groundMaterial->roughness = 1.0f;
     CommonObj* ground = new CommonObj(groundModel, groundMaterial);
+    StaticEntity* physical = new StaticEntity(ground);
+    ground->physical = physical;
     content->allObjs->push_back(ground);
 
 

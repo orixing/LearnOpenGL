@@ -26,6 +26,8 @@ public:
     /*  网格数据  */
     vector<Vertex> vertices;
     vector<unsigned int> indices;
+    //todo:边去重
+    vector<std::pair<glm::vec3, glm::vec3>> lines;
     /*  函数  */
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices);
     void Draw();

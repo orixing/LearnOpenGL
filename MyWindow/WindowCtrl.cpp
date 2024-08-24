@@ -45,11 +45,25 @@ void WindowCtrl::Tick() {
 		//检测输入
         processHotKeyInput(window);
         //物理模拟
+        //计算所有物体的包围盒
+        for (GameObj* obj : *content->allObjs) {
+            if (obj->physical == NULL) continue;
+            obj->physical->BuildBoundingBox();
+        }
+
+
         for (GameObj* obj : *content->allObjs) {
             if (obj->physical == NULL) continue;
             obj->physical->BeforeCollision();
+
             //这里先只做地面和物体之间的碰撞检测
-            obj->physical->HandleCollision(nullptr);
+            for (GameObj* other : *content->allObjs) {
+                if (other->physical == NULL) continue;
+                if (obj == other) continue;
+                if (obj->boundingBox->CollisionDetect(other->boundingBox))
+                    obj->physical->HandleCollision(other);
+            }
+
             obj->physical->AfterCollision();
         }
         //渲染窗口

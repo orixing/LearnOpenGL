@@ -29,11 +29,11 @@ WindowContent::~WindowContent() {}
 
 void WindowContent::ShootNewObj() {
     //创建一个随机的物体并发射
-    Model* model = new Model("../../MyWindow/spot/bunny.obj");
+    Model* model = new Model("../../MyWindow/spot/spot_triangulated_good.obj");
     PBRMetalMaterial* m = new PBRMetalMaterial();
     m->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
     CommonObj* cow = new CommonObj(model, m);
-    cow->position = mainCamera->Position + mainCamera->Direc * 0.2f;
+    cow->position = mainCamera->Position + mainCamera->Direc *2.0f;
     cow->scaleX = cow->scaleY = cow->scaleZ = 1.0f;
     RigidBody* physical = new RigidBody(cow);
     physical->v = 2.0f * mainCamera->Direc;

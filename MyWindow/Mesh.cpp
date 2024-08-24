@@ -5,6 +5,16 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices)
     this->indices = indices;
 
     setupMesh();
+
+    for (int i = 0;i < indices.size();i += 3) {
+        glm::vec3 v1 = vertices.at(indices[i]).Position;
+        glm::vec3 v2 = vertices.at(indices[i+1]).Position;
+        glm::vec3 v3 = vertices.at(indices[i+2]).Position;
+        lines.push_back(std::make_pair(v1, v2));
+        lines.push_back(std::make_pair(v1, v3));
+        lines.push_back(std::make_pair(v2, v3));
+    }
+
 }
 
 

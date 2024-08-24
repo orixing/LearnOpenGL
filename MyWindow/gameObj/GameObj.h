@@ -25,7 +25,7 @@ public:
 	virtual void DrawInShadowPass(Shader* shader);
 
 	//ªÒ»°Model±‰ªªæÿ’Û
-	glm::mat4 getModelMatrix();
+	glm::mat4 getModelMatrix() override;
 	glm::quat getRotationQuad();
 	void setRotationByQuad(glm::quat q);
 

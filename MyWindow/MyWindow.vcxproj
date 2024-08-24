@@ -133,6 +133,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera\Camera.cpp" />
+    <ClCompile Include="physical\BoundingBox.cpp" />
     <ClCompile Include="gameObj\CommonObj.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="gameObj\GameObj.cpp" />
@@ -163,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="physical\BoundingBox.h" />
     <ClInclude Include="gameObj\CommonObj.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="gameObj\GameObj.h" />
