@@ -1,6 +1,7 @@
 #include "WindowContent.h"
-
-
+#include "PBRMetalMaterial.h"
+#include "CommonObj.h"
+#include "RigidBody.h"
 WindowContent::WindowContent(Camera* c) :mainCamera(c) {
 	allObjs = new std::vector<GameObj*>();
 	allLights = new std::vector<Light*>();
@@ -25,3 +26,17 @@ WindowContent::WindowContent(Camera* c) :mainCamera(c) {
     postProcessingFBO->AddRenderbuffer(GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
 }
 WindowContent::~WindowContent() {}
+
+void WindowContent::ShootNewObj() {
+    //创建一个随机的物体并发射
+    Model* model = new Model("../../MyWindow/spot/bunny.obj");
+    PBRMetalMaterial* m = new PBRMetalMaterial();
+    m->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
+    CommonObj* cow = new CommonObj(model, m);
+    cow->position = mainCamera->Position + mainCamera->Direc * 0.2f;
+    cow->scaleX = cow->scaleY = cow->scaleZ = 1.0f;
+    RigidBody* physical = new RigidBody(cow);
+    physical->v = 2.0f * mainCamera->Direc;
+    cow->physical = physical;
+    allObjs->push_back(cow);
+}

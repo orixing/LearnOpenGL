@@ -2,13 +2,18 @@
 #include <glm/glm/glm.hpp>
 #include "Model.h"
 #include "Material.h"
-class GameObj
+#include "PhysicalComponent.h"
+class GameObj : public IPhysical
 {
 public:
 	glm::vec3 position = glm::vec3();
 	float pitch; // ÈÆXÖáÐý×ª
 	float yaw;   // ÈÆYÖáÐý×ª
 	float roll;  // ÈÆZÖáÐý×ª
+
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+	float scaleZ = 1.0f;
 
 	Model* model;
 
@@ -21,8 +26,19 @@ public:
 
 	//»ñÈ¡Model±ä»»¾ØÕó
 	glm::mat4 getModelMatrix();
+	glm::quat getRotationQuad();
+	void setRotationByQuad(glm::quat q);
 
 	bool renderBorder = false;
 	bool transparent = false;
+
+	PhysicalComponent* physical;
+	Mesh* GetMesh() override;
+	void UpdatePosition(glm::vec3 deltaX) override;
+	void UpdateRotation(glm::vec3 dw) override;
+	glm::vec3 GetPosition() override;
+	glm::quat GetRotation() override;
+	glm::vec3 GetScale() override;
+	glm::vec3 GetRadiusVector(glm::vec3 localPos) override;
 };
 

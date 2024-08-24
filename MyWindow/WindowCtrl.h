@@ -24,6 +24,8 @@ public:
 
 	GLFWwindow* NewWindow();
 
+	static bool RKeyPressed;
+
 private:
 	WindowCtrl();
 	~WindowCtrl();

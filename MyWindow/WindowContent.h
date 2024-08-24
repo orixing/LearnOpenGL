@@ -26,4 +26,6 @@ public:
 
 	WindowContent(Camera* c);
 	~WindowContent();
+
+	void ShootNewObj();//todo:使用工厂实现，可能需要换个地方
 };
