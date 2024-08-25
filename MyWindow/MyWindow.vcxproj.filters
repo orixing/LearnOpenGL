@@ -105,6 +105,9 @@
     <ClCompile Include="physical\BoundingBox.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="physical\collision\CollisionCtrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -192,6 +195,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="physical\BoundingBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\collision\CollisionCtrl.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

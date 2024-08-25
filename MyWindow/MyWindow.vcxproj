@@ -73,6 +73,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LibraryPath>..\include;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>..\include;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -113,6 +116,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;assimp-vc140-mt.lib;</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -123,12 +127,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories);$(ProjectDir);$(ProjectDir)\material;$(ProjectDir)\shaders;$(ProjectDir)\gameObj;$(ProjectDir)\texture;$(ProjectDir)\camera;$(ProjectDir)\physical</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3.lib;opengl32.lib;assimp-vc140-mt.lib;</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -139,6 +146,7 @@
     <ClCompile Include="gameObj\GameObj.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="physical\collision\CollisionCtrl.cpp" />
     <ClCompile Include="physical\PhysicalComponent.cpp" />
     <ClCompile Include="RenderCtrl.cpp" />
     <ClCompile Include="main.cpp" />
@@ -169,6 +177,7 @@
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="gameObj\GameObj.h" />
     <ClInclude Include="GlobalConst.h" />
+    <ClInclude Include="physical\collision\CollisionCtrl.h" />
     <ClInclude Include="physical\IPhysical.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="physical\PhysicalComponent.h" />

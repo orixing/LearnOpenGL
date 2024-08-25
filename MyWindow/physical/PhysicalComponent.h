@@ -10,5 +10,11 @@ public:
 	virtual void HandleCollision(IPhysical* otherObj);
 	IPhysical* obj;
 	PhysicalComponent(IPhysical* obj);
+	void SetDynamic(bool b);
+	bool IsDynamic() { return dynamic; }
+	virtual void OnDynamic();
+	virtual void OnStable();
+private:
+	bool dynamic = false;
 };
 

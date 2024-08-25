@@ -2,6 +2,7 @@
 #include "WindowContent.h"
 #include <iostream>
 #include "RenderCtrl.h"
+#include "collision/CollisionCtrl.h"
 WindowCtrl& WindowCtrl::getInstance() {
 	static WindowCtrl instance;
 	return instance;
@@ -45,27 +46,39 @@ void WindowCtrl::Tick() {
 		//检测输入
         processHotKeyInput(window);
         //物理模拟
-        //计算所有物体的包围盒
-        for (GameObj* obj : *content->allObjs) {
-            if (obj->physical == NULL) continue;
-            obj->physical->BuildBoundingBox();
-        }
+        CollisionCtrl::getInstance().Tick(content);
+        //计算所有运动物体的包围盒
+        
+        //for (GameObj* obj : *content->allObjs) {
+        //    if (obj->physical == NULL) continue;
+        //    if (!obj->physical->IsDynamic()) continue;
+        //    obj->physical->BuildBoundingBox();
+        //}
+
+        ////检查运动物体和其他物体的碰撞，存储碰撞结果
+        //for (GameObj* obj : *content->allObjs) {
+        //    if (obj->physical == NULL) continue;
+        //    if (!obj->physical->IsDynamic()) continue;
+        //}
+
+        ////处理所有碰撞
 
 
-        for (GameObj* obj : *content->allObjs) {
-            if (obj->physical == NULL) continue;
-            obj->physical->BeforeCollision();
+        //for (GameObj* obj : *content->allObjs) {
+        //    if (obj->physical == NULL) continue;
+        //    if (!obj->physical->IsDynamic()) continue;
+        //    obj->physical->BeforeCollision();
 
-            //这里先只做地面和物体之间的碰撞检测
-            for (GameObj* other : *content->allObjs) {
-                if (other->physical == NULL) continue;
-                if (obj == other) continue;
-                if (obj->boundingBox->CollisionDetect(other->boundingBox))
-                    obj->physical->HandleCollision(other);
-            }
+        //    //这里先只做地面和物体之间的碰撞检测
+        //    for (GameObj* other : *content->allObjs) {
+        //        if (other->physical == NULL) continue;
+        //        if (obj == other) continue;
+        //        if (obj->boundingBox->CollisionDetect(other->boundingBox))
+        //            obj->physical->HandleCollision(other);
+        //    }
 
-            obj->physical->AfterCollision();
-        }
+        //    obj->physical->AfterCollision();
+        //}
         //渲染窗口
         RenderCtrl::getInstance().Render(content);
 

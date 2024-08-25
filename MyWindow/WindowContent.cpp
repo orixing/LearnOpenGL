@@ -24,19 +24,22 @@ WindowContent::WindowContent(Camera* c) :mainCamera(c) {
     postProcessingFBO = new FrameBuffer();
     postProcessingFBO->BindTexture(Texture::Builder().SetName("screenTex").SetInternalFormat(GL_RGB).SetFormat(GL_RGB).SetType(GL_UNSIGNED_BYTE).Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     postProcessingFBO->AddRenderbuffer(GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
+
+    model = new Model("../../MyWindow/spot/bunny.obj");
 }
 WindowContent::~WindowContent() {}
 
 void WindowContent::ShootNewObj() {
     //创建一个随机的物体并发射
-    Model* model = new Model("../../MyWindow/spot/spot_triangulated_good.obj");
+    Model* newModel = new Model(*model);
     PBRMetalMaterial* m = new PBRMetalMaterial();
     m->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
-    CommonObj* cow = new CommonObj(model, m);
+    CommonObj* cow = new CommonObj(newModel, m);
     cow->position = mainCamera->Position + mainCamera->Direc *2.0f;
     cow->scaleX = cow->scaleY = cow->scaleZ = 1.0f;
     RigidBody* physical = new RigidBody(cow);
     physical->v = 2.0f * mainCamera->Direc;
+    physical->SetDynamic(true);
     cow->physical = physical;
     allObjs->push_back(cow);
 }

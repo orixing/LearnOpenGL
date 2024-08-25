@@ -43,11 +43,29 @@ void RigidBody::AfterCollision() {
 
 	w += glm::vec3(I_inverse * glm::vec4(totalT, 0.0));
 
+
+	if (glm::length(v) <= 0.05 && glm::length(w) <= 0.3) {
+		v = w = glm::vec3(0.0);
+		SetDynamic(false);
+	}
+	//else if (glm::length(v) <= 0.05) {
+	//	v = glm::vec3(0.0);
+	//	w *= 0.2f;
+	//}
+
 	obj->UpdatePosition(v * dt);
 	obj->UpdateRotation(w * 0.5f * dt);
 
 	std::cout << "V:		" << v.x << " " << v.y << " " << v.z << " " << std::endl;
+	std::cout << "W:		" << w.x << " " << w.y << " " << w.z << " " << std::endl;
+}
 
+void RigidBody::OnDynamic() {
+	BeforeCollision();
+}
+
+void RigidBody::OnStable() {
+	BuildBoundingBox();
 }
 
 glm::mat4 VecToCrossMat(glm::vec3 v)
@@ -80,14 +98,18 @@ void RigidBody::HandleCollision(IPhysical* otherObj) {
 
 	vector<glm::vec3> collisionPoint;
 
-	//边和每个面检测是否有穿过
+	//todo:换种优化，cache保存在obj里
+	glm::mat4 otherModel = otherObj->getModelMatrix();
+	glm::mat4 objModel = obj->getModelMatrix();
+
+	//边和每个面检测是否有穿过 todo:这部分应该放在碰撞检测里
 	for (const std::pair<glm::vec3, glm::vec3>& line : obj->GetMesh()->lines) {
 		for (int i = 0;i < otherIndices->size();i += 3) {
-			glm::vec3 v0 = otherObj->getModelMatrix() * glm::vec4(otherVertices->at(otherObj->GetMesh()->indices[i]).Position, 1.0);
-			glm::vec3 v1 = otherObj->getModelMatrix() * glm::vec4(otherVertices->at(otherObj->GetMesh()->indices[i+1]).Position, 1.0);
-			glm::vec3 v2 = otherObj->getModelMatrix() * glm::vec4(otherVertices->at(otherObj->GetMesh()->indices[i+2]).Position, 1.0);
-			glm::vec3 va = obj->getModelMatrix() * glm::vec4(line.first, 1.0);
-			glm::vec3 vb = obj->getModelMatrix() * glm::vec4(line.second, 1.0);
+			glm::vec3 v0 = otherModel * glm::vec4(otherVertices->at(otherObj->GetMesh()->indices[i]).Position, 1.0);
+			glm::vec3 v1 = otherModel * glm::vec4(otherVertices->at(otherObj->GetMesh()->indices[i+1]).Position, 1.0);
+			glm::vec3 v2 = otherModel * glm::vec4(otherVertices->at(otherObj->GetMesh()->indices[i+2]).Position, 1.0);
+			glm::vec3 va = objModel * glm::vec4(line.first, 1.0);
+			glm::vec3 vb = objModel * glm::vec4(line.second, 1.0);
 			glm::vec3 x0a = va - v0;
 			glm::vec3 xba = va - vb;
 			glm::vec3 x10 = v0 - v1;
@@ -111,8 +133,14 @@ void RigidBody::HandleCollision(IPhysical* otherObj) {
 		}
 	}
 
+	if (collisionPoint.size() == 0) {
+		//包围盒相交但实际无碰撞; todo:这部分应该放在碰撞检测里
+		return;
+	}
+
+
 	for (const glm::vec3& ver : collisionPoint) {
-		glm::vec3 localPos = glm::inverse(obj->getModelMatrix()) * glm::vec4(ver, 1.0);
+		glm::vec3 localPos = glm::inverse(objModel) * glm::vec4(ver, 1.0);
 		//glm::vec3 radiusVec = obj->GetRadiusVector(ver.Position);
 		glm::vec3 worldPos = obj->GetPosition() + obj->GetRotation() * localPos;
 		//if (glm::dot(P - worldPos, N) < 0) continue;
@@ -131,16 +159,13 @@ void RigidBody::HandleCollision(IPhysical* otherObj) {
 	glm::vec3 avgPointTotalVN = glm::dot(avgPointTotalV, N) * N;
 	glm::vec3 avgPointTotalVT = avgPointTotalV - avgPointTotalVN;
 
-	glm::vec3 newVN = glm::length(avgPointTotalVN) < 0.2 ? glm::vec3(0.0) : -restitution * avgPointTotalVN;
-	glm::vec3 newVT = glm::length(avgPointTotalVT) < 0.001 ? glm::vec3(0.0)
-		: avgPointTotalVT * std::max(0.0f, 1 - friction * (1 + restitution) * glm::length(avgPointTotalVN) / glm::length(avgPointTotalVT));
+	glm::vec3 newVN = glm::length(avgPointTotalVN) < 0.1 ? glm::vec3(0.0) : -restitution * avgPointTotalVN;
+	glm::vec3 newVT = glm::length(avgPointTotalVT) < 0.1 ? glm::vec3(0.0)
+		: avgPointTotalVT * std::max(0.0f, 1 - friction * (1 + restitution) * std::max(glm::length(avgPointTotalVN),0.1f) / glm::length(avgPointTotalVT));
 	glm::vec3 newV = newVN + newVT;
 
-	if (glm::length(newV) < 0.1) 
-		newV = glm::vec3(0.0);
-
-	std::cout << "oldV:		" << avgPointTotalV.x << " " << avgPointTotalV.y << " " << avgPointTotalV.z << " " << std::endl;
-	std::cout << "newV:		" << newV.x << " " << newV.y << " " << newV.z << " " << std::endl;
+	//if (glm::length(newV) < 0.1) 
+	//	newV = glm::vec3(0.0);
 
 	//根据新旧速度算冲量
 	glm::mat4 Rr_Matrix = VecToCrossMat(obj->GetRotation() * avgPointPos);
@@ -150,13 +175,5 @@ void RigidBody::HandleCollision(IPhysical* otherObj) {
 	glm::vec3 J = glm::inverse(K)* glm::vec4(newV - avgPointTotalV, 0.0);
 	totalJ += J;//冲量
 	totalT += glm::cross(obj->GetRotation() * avgPointPos, J);//力矩
-
-
-	glm::vec3 testV = v + totalJ / mass;
-	glm::vec3 testW = w + glm::vec3(I_inverse * glm::vec4(totalT, 0.0));
-
-	glm::vec3 test = testV + glm::cross(testW, obj->GetRotation() * avgPointPos);//总速度
-
-	std::cout << "test:		" << test.x << " " << test.y << " " << test.z << " " << std::endl;
 }
 

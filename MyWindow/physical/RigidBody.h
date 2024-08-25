@@ -18,6 +18,8 @@ public:
 	void BeforeCollision() override;
 	void AfterCollision() override;
 	void HandleCollision(IPhysical* otherObj) override;
+	void OnDynamic() override;
+	void OnStable() override;
 
 	RigidBody(IPhysical* obj);
 

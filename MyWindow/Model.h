@@ -23,6 +23,10 @@ public:
         meshes.push_back(*mesh);
     }
 
+    Model(const Model& model) {
+        meshes = model.meshes;
+    }
+
     void Draw();
 
     vector<Mesh> meshes;//todo:模型加载这里有问题，应该是Obj文件直接加载成嵌套的GameObj，每个GameObj有对应的mesh，然后没有model类

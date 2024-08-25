@@ -28,4 +28,7 @@ public:
 	~WindowContent();
 
 	void ShootNewObj();//todo:使用工厂实现，可能需要换个地方
+
+	Model* model;//todo:一个model只加载一次，创建Obj的工厂
+
 };
