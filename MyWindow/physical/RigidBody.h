@@ -17,20 +17,28 @@ public:
 
 	void BeforeCollision() override;
 	void AfterCollision() override;
-	void HandleCollision(IPhysical* otherObj) override;
+	//void HandleCollision(IPhysical* otherObj) override;
 	void OnDynamic() override;
 	void OnStable() override;
 
 	RigidBody(IPhysical* obj);
+
+	bool DiscreteCollisionDetect(PhysicalComponent* other, CollisionEvent** event) override;
+	bool CollisionDetectImpl(RigidBody* other, CollisionEvent** event) override;
+	bool CollisionDetectImpl(StaticEntity* other, CollisionEvent** event) override;
+
+	void HandleCollsion(PhysicalComponent* other, CollisionEvent* event)override;
+	void HandleCollsionImpl(RigidBody* other, CollisionEvent* event) override;
+	void HandleCollsionImpl(StaticEntity* other, CollisionEvent* event) override;
+
+	glm::mat4 I_inverse;//I施加旋转后得到全局转动惯量，再求逆，每次tick需要重新计算
+	const float restitution = 0.5f;
+	const float friction = 0.4f;
 
 private:
 	const float linear_decay = 0.998f;
 	const float angular_decay = 0.98f;
 	const float g = 9.8f;
 	const float dt = 0.015f;
-	const float restitution = 0.5f;
-	const float friction = 0.4f;
-
-	glm::mat4 I_inverse;//I施加旋转后得到全局转动惯量，再求逆，每次tick需要重新计算
 };
 

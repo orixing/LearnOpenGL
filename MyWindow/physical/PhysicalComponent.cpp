@@ -2,24 +2,27 @@
 
 void PhysicalComponent::BeforeCollision() {}
 void PhysicalComponent::AfterCollision() {}
-void PhysicalComponent::HandleCollision(IPhysical* otherObj) {}
+//void PhysicalComponent::HandleCollision(IPhysical* otherObj) {}
 
-PhysicalComponent::PhysicalComponent(IPhysical* obj) :obj(obj) {}
+PhysicalComponent::PhysicalComponent(IPhysical* obj) :obj(obj) {
+	boundingBox = new BoundingBox();
+	BuildBoundingBox();
+}
 
 
 void PhysicalComponent::BuildBoundingBox() {
-	obj->boundingBox->Clear();
+	boundingBox->Clear();
 	glm::mat4 model = obj->getModelMatrix();
 	for (const Vertex& ver : obj->GetMesh()->vertices) {
 		glm::vec3 worldPos = model * glm::vec4(ver.Position,1.0);
-		obj->boundingBox->AddOneVertex(worldPos);
+		boundingBox->AddOneVertex(worldPos);
 	}
 }
 
 void PhysicalComponent::SetDynamic(bool b) {
+	if (!dynamic && b) OnDynamic();
+	if (dynamic && !b) OnStable();
 	dynamic = b;
-	if (b) OnDynamic();
-	if (!b) OnStable();
 }
 void PhysicalComponent::OnDynamic(){}
 void PhysicalComponent::OnStable() {}

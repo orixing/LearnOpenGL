@@ -273,7 +273,7 @@ void main()
         color += PointLight(i);
     }
     //处理环境光照
-    color += EnvLight();
+    //color += EnvLight();
 
     color = color / (color + vec3(1.0));//色调映射
 

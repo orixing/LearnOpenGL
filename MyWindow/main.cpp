@@ -98,7 +98,7 @@ int main(void)
     content->skyboxObj->PrecomputeIBL();
 
     //¶à¹âÔ´
-    content->allLights->push_back(new Light(glm::vec3(0, 40, 45)));
+    content->allLights->push_back(new Light(glm::vec3(0, 4, 4.5)));
     //content->allLights->push_back(new Light(glm::vec3(4.5, 2.5, 6)));
 
 

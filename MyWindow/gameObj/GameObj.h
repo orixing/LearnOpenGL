@@ -2,7 +2,9 @@
 #include <glm/glm/glm.hpp>
 #include "Model.h"
 #include "Material.h"
+#include "IPhysical.h"
 #include "PhysicalComponent.h"
+
 class GameObj : public IPhysical
 {
 public:
@@ -32,7 +34,8 @@ public:
 	bool renderBorder = false;
 	bool transparent = false;
 
-	PhysicalComponent* physical;
+	long guid;
+
 	Mesh* GetMesh() override;
 	void UpdatePosition(glm::vec3 deltaX) override;
 	void UpdateRotation(glm::vec3 dw) override;
@@ -40,5 +43,8 @@ public:
 	glm::quat GetRotation() override;
 	glm::vec3 GetScale() override;
 	glm::vec3 GetRadiusVector(glm::vec3 localPos) override;
+	long GetGuid() override;
+
+	PhysicalComponent* physical;
 };
 

@@ -108,6 +108,21 @@
     <ClCompile Include="physical\collision\CollisionCtrl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="physical\collision\collisionEvent\CollisionEvent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GuidCtrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="physical\collision\DCDStrategy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="physical\collision\collisionEvent\PointCollisionEvent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="physical\collision\CollisionHandlerStrategy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -198,6 +213,21 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="physical\collision\CollisionCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\collision\collisionEvent\CollisionEvent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GuidCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\collision\DCDStrategy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\collision\collisionEvent\PointCollisionEvent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="physical\collision\CollisionHandlerStrategy.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

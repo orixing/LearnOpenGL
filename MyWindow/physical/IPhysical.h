@@ -1,12 +1,10 @@
 #pragma once
 #include "Mesh.h"
-#include "BoundingBox.h"
 #include <glm/glm/glm.hpp>
 class IPhysical
 {
 public:
 	IPhysical() {
-		boundingBox = new BoundingBox();
 	}
 
 	virtual Mesh* GetMesh() = 0;
@@ -17,7 +15,7 @@ public:
 	virtual glm::vec3 GetRadiusVector(glm::vec3 localPos) = 0;
 	virtual glm::vec3 GetScale() = 0;
 	virtual glm::mat4 getModelMatrix() = 0;
+	virtual long GetGuid() = 0;
 
-	BoundingBox* boundingBox;
 };
 

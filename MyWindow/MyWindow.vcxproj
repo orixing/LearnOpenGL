@@ -140,6 +140,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera\Camera.cpp" />
+    <ClCompile Include="physical\collision\CollisionHandlerStrategy.cpp" />
+    <ClCompile Include="physical\collision\DCDStrategy.cpp" />
+    <ClCompile Include="GuidCtrl.cpp" />
+    <ClCompile Include="physical\collision\collisionEvent\CollisionEvent.cpp" />
     <ClCompile Include="physical\BoundingBox.cpp" />
     <ClCompile Include="gameObj\CommonObj.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
@@ -148,6 +152,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="physical\collision\CollisionCtrl.cpp" />
     <ClCompile Include="physical\PhysicalComponent.cpp" />
+    <ClCompile Include="physical\collision\collisionEvent\PointCollisionEvent.cpp" />
     <ClCompile Include="RenderCtrl.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="material\Material.cpp" />
@@ -172,6 +177,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="physical\collision\CollisionHandlerStrategy.h" />
+    <ClInclude Include="physical\collision\DCDStrategy.h" />
+    <ClInclude Include="GuidCtrl.h" />
+    <ClInclude Include="physical\collision\collisionEvent\CollisionEvent.h" />
     <ClInclude Include="physical\BoundingBox.h" />
     <ClInclude Include="gameObj\CommonObj.h" />
     <ClInclude Include="FrameBuffer.h" />
@@ -181,6 +190,7 @@
     <ClInclude Include="physical\IPhysical.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="physical\PhysicalComponent.h" />
+    <ClInclude Include="physical\collision\collisionEvent\PointCollisionEvent.h" />
     <ClInclude Include="RenderCtrl.h" />
     <ClInclude Include="material\MaterialEnum.h" />
     <ClInclude Include="material\Material.h" />

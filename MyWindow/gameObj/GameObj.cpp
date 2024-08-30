@@ -1,5 +1,7 @@
 #include "GameObj.h"
+#include "GuidCtrl.h"
 GameObj::GameObj(Model* model): model(model){
+    guid = GuidCtrl::getInstance().GenGuid();
 }
 
 GameObj::~GameObj() {}
@@ -64,4 +66,8 @@ glm::vec3 GameObj::GetRadiusVector(glm::vec3 localPos) {
 
 glm::vec3 GameObj::GetScale() {
     return glm::vec3(scaleX, scaleY, scaleZ);
+}
+
+long GameObj::GetGuid() {
+    return guid;
 }

@@ -25,7 +25,7 @@ WindowContent::WindowContent(Camera* c) :mainCamera(c) {
     postProcessingFBO->BindTexture(Texture::Builder().SetName("screenTex").SetInternalFormat(GL_RGB).SetFormat(GL_RGB).SetType(GL_UNSIGNED_BYTE).Build(), GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D);
     postProcessingFBO->AddRenderbuffer(GL_DEPTH_STENCIL_ATTACHMENT, GL_DEPTH24_STENCIL8, GlobalConst::ScreenWidth, GlobalConst::ScreenHeight);
 
-    model = new Model("../../MyWindow/spot/bunny.obj");
+    model = new Model("../../MyWindow/spot/spot_triangulated_good.obj");
 }
 WindowContent::~WindowContent() {}
 
