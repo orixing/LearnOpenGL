@@ -35,7 +35,7 @@ void main() {
 
     //差小于阈值，不做处理
     if(localContrast < max(FXAA_THRESHOLD, FXAA_EDGE_THRESHOLD_MIN * lumaMax)){
-        FragColor = vec4(rgbM,1.0);
+        FragColor = vec4(pow(rgbM, vec3(1.0/2.2)),1.0);
         return;
     }
 
@@ -93,7 +93,7 @@ void main() {
         float lumaEndN2 = dot(rgbEndN2, vec3(0.299, 0.587, 0.114));
         //如果出现和原始像素对差异较大的颜色，则这段可能不是锯齿
         if((abs(lumaEndN1 - lumaM) > 0.15 &&  abs(lumaEndN1 - lumaOther) > 0.15) || (abs(lumaEndN2 - lumaM) > 0.15  && abs(lumaEndN2 - lumaOther) > 0.15)){
-            FragColor = vec4(rgbM,1.0);
+            FragColor = vec4(pow(rgbM, vec3(1.0/2.2)),1.0);
             return;
         }
         //如果两个像素差距较小，认为边界到头了
@@ -114,7 +114,7 @@ void main() {
         float lumaEndP2 = dot(rgbEndP2, vec3(0.299, 0.587, 0.114));
         //如果出现和原始像素对差异较大的颜色，则这段可能不是锯齿
         if((abs(lumaEndP1 - lumaM) > 0.15 && abs(lumaEndP1 - lumaOther) > 0.15)|| (abs(lumaEndP2 - lumaM) > 0.15 && abs(lumaEndP2 - lumaOther) > 0.15)){
-            FragColor = vec4(rgbM,1.0);
+            FragColor = vec4(pow(rgbM, vec3(1.0/2.2)),1.0);
             return;
         }
         //如果两个像素差距较小，认为边界到头了
@@ -128,20 +128,22 @@ void main() {
 
     //某一侧达到遍历上限
     if(countN < 0.001 || countP < 0.001){
-        FragColor = vec4(rgbM,1.0);
+        FragColor = vec4(pow(rgbM, vec3(1.0/2.2)),1.0);
         return;
     }
     //如果同侧，暂不处理
     if(nearMP == nearMN){
-        FragColor = vec4(rgbM,1.0);
+        FragColor = vec4(pow(rgbM, vec3(1.0/2.2)),1.0);
         return;
     }
     if(nearMN){
         vec2 pos = (countP * pos1 + countN * pos2) /  (countN + countP);
-        FragColor = vec4(textureLod(screenTexture, pos, 0.0).xyz,1.0);
+        vec3 color = texture(screenTexture, pos, 0.0).xyz;
+        FragColor = vec4(pow(color, vec3(1.0/2.2)),1.0);
     } else{
         vec2 pos = (countN * pos1 + countP * pos2) /  (countN + countP);
-        FragColor = vec4(textureLod(screenTexture, pos, 0.0).xyz,1.0);
+        vec3 color = texture(screenTexture, pos, 0.0).xyz;
+        FragColor = vec4(pow(color, vec3(1.0/2.2)),1.0); 
     }
 
 

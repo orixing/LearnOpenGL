@@ -171,6 +171,8 @@ void RenderCtrl::DoPBRRenderPass() {
         PBRShader->setInt("lights[" + std::to_string(i) + "].shadowMap", 8+i);
     }
 
+    PBRShader->setInt("useEnvLight", curRenderContent->useEnvLight);
+
     PBRShader->setMat4("view", curRenderContent->mainCamera->GetViewMatrix());
     screenObj->Draw();
 }

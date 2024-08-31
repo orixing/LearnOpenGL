@@ -90,7 +90,7 @@ void WindowCtrl::processHotKeyInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         content->mainCamera->ProcessKeyboard(DirecEnum::Right, content->frameDeltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        content->useFXAA = !content->useFXAA;
+        content->useFXAA = !content->useFXAA;//todo:FXAAÓÐÎÊÌâ
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         if (!WindowCtrl::RKeyPressed) {
             content->ShootNewObj();
@@ -100,6 +100,8 @@ void WindowCtrl::processHotKeyInput(GLFWwindow* window)
     else {
         WindowCtrl::RKeyPressed = false;
     }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        content->useEnvLight = !content->useEnvLight;
 }
 
 void WindowCtrl::mouseInputCallback(GLFWwindow* window, double xpos, double ypos) {

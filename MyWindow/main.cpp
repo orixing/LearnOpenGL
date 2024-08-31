@@ -72,8 +72,8 @@ int main(void)
 
     PBRMetalMaterial* m2 = new PBRMetalMaterial();
     m2->albedoTex = TextureCtrl::getInstance().getTexture(TextureEnum::CowAlbedoTex);
-    m2->metallic = 0.8f;
-    m2->roughness = 0.1f;
+    m2->metallic = 1.0f;
+    m2->roughness = 0.4f;
     CommonObj* cow2 = new CommonObj(&myModel, m2);
     cow2->yaw = 155.0f;
     cow2->renderBorder = true;

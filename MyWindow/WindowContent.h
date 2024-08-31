@@ -17,6 +17,8 @@ public:
 	float lastFrameTime;
 	float frameDeltaTime;
 
+	bool useEnvLight = true;
+
 	std::vector<GameObj*> *allObjs;
 	std::vector<Light*>* allLights;
 

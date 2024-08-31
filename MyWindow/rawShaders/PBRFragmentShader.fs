@@ -12,6 +12,7 @@ uniform sampler2D texSSAO;
 uniform sampler2D gAlbedo;
 uniform sampler2D gExtra;
 
+uniform int useEnvLight;
 
 const float PI = 3.141592653589793;
 const float PI2 = 6.283185307179586;
@@ -201,12 +202,7 @@ vec3 PointLight(int lightIndex){
 
         vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
         float NdotL = max(dot(N, L), 0.0);        
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1-shadow);
-
-        //vec3 ambient = vec3(0.0005) * albedo * ao;
-        vec3 color = Lo;  
-        //vec3 color   =  vec3(F0 * envBRDF.x + envBRDF.y);
-        return color;
+        return (kD * albedo / PI + specular) * radiance * NdotL * (1-shadow);
     }
     
     else{
@@ -273,7 +269,9 @@ void main()
         color += PointLight(i);
     }
     //处理环境光照
-    //color += EnvLight();
+    if(useEnvLight == 1){
+        color += EnvLight();
+    }
 
     color = color / (color + vec3(1.0));//色调映射
 
